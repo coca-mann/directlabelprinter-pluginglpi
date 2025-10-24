@@ -12,7 +12,7 @@
         {# Hidden field defining the context for saving config values #}
         <input type="hidden" name="config_context" value="plugin:{{ plugin_name }}">
 
-        {# --- Autenticação Section --- #}
+        {# --- Authentication Section --- #}
         <div class="card card-flush shadow-sm m-6">
             <div class="card-header">
                  <h3 class="card-title fw-bold">{{ __('Authentication', 'directlabelprinter') }}</h3>
@@ -33,7 +33,7 @@
 
                 {{ fields.passwordField(
                     'api_password',
-                    '', {# Always show empty for security #}
+                    null,
                     __('Password', 'directlabelprinter')
                 ) }}
 
