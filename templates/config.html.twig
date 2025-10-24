@@ -1,0 +1,139 @@
+{# Import GLPI form macros for standard fields #}
+{% import "components/form/fields_macros.html.twig" as fields %}
+
+{# Check if the user has edit rights #}
+{% if can_edit %}
+    {# Form submits back to the core Config form handler #}
+    <form name="config_form_directlabelprinter" action="{{ action_url }}" method="POST">
+        {# CSRF token for security #}
+        <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
+        {# Hidden field telling GLPI which Config class processed the tab #}
+        <input type="hidden" name="config_class" value="GlpiPlugin\\Directlabelprinter\\Config">
+        {# Hidden field defining the context for saving config values #}
+        <input type="hidden" name="config_context" value="plugin:{{ plugin_name }}">
+
+        {# --- Autenticação Section --- #}
+        <div class="card card-flush shadow-sm m-6">
+            <div class="card-header">
+                 <h3 class="card-title fw-bold">{{ __('Authentication', 'directlabelprinter') }}</h3>
+            </div>
+            <div class="card-body">
+                {{ fields.textField(
+                    'api_url',
+                    current_config.api_url | default(''),
+                    __('API URL', 'directlabelprinter'),
+                    {'size': 60}
+                ) }}
+
+                {{ fields.textField(
+                    'api_user',
+                    current_config.api_user | default(''),
+                    __('User', 'directlabelprinter')
+                ) }}
+
+                {{ fields.passwordField(
+                    'api_password',
+                    '', {# Always show empty for security #}
+                    __('Password', 'directlabelprinter'),
+                    {'value_in_db' : current_config.api_password is not empty } {# Indicate if a password is saved #}
+                ) }}
+
+                {# Placeholder for Test Connection button - AJAX logic will be added later #}
+                <div class="mt-3">
+                     <button type="button" id="test_connection_btn" class="btn btn-secondary btn-sm">{{ __('Test Connection', 'directlabelprinter') }}</button>
+                     <span id="connection_status" class="ms-2"></span> {# Area to show connection result #}
+                </div>
+            </div>
+        </div>
+
+        {# --- Layouts Section --- #}
+        <div class="card card-flush shadow-sm m-6">
+            <div class="card-header">
+                 <h3 class="card-title fw-bold">{{ __('Layouts', 'directlabelprinter') }}</h3>
+            </div>
+             <div class="card-body">
+                 {# Placeholder for Fetch Layouts button - AJAX logic will be added later #}
+                 <button type="button" id="fetch_layouts_btn" class="btn btn-secondary btn-sm">{{ __('Fetch Layouts', 'directlabelprinter') }}</button>
+                 <span id="fetch_status" class="ms-2"></span> {# Area to show fetch result #}
+
+                 <div class="mt-4">
+                     {{ fields.dropdownFieldFromArray(
+                         'default_layout_id_api',   {# Name corresponds to config key #}
+                         layout_options,            {# Array of id_api => nome #}
+                         default_layout_id,         {# Pre-select the default layout #}
+                         __('Default Layout', 'directlabelprinter')
+                     ) }}
+                 </div>
+
+                 {# Display Layout Details (Read-only) #}
+                 <h4 class="mt-5">{{ __('Layout Details', 'directlabelprinter') }}</h4>
+                 {% if layouts is not empty %}
+                     <table class='tab_cadre_fixehov'>
+                         <thead>
+                             <tr>
+                                 <th>{{ __('Name') }}</th>
+                                 <th>{{ __('Description') }}</th>
+                                 <th>{{ __('Width (mm)') }}</th>
+                                 <th>{{ __('Height (mm)') }}</th>
+                                 <th>{{ __('Title Height (mm)') }}</th>
+                                 <th>{{ __('Title Font Size') }}</th>
+                                 <th>{{ __('QR Margin (mm)') }}</th>
+                                 <th>{{ __('Font Name') }}</th>
+                                 <th>{{ __('Default', 'directlabelprinter') }}</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                         {% for layout in layouts %}
+                             <tr>
+                                 <td>{{ layout.nome }}</td>
+                                 <td>{{ layout.descricao }}</td>
+                                 <td>{{ layout.largura_mm }}</td>
+                                 <td>{{ layout.altura_mm }}</td>
+                                 <td>{{ layout.altura_titulo_mm }}</td>
+                                 <td>{{ layout.tamanho_fonte_titulo }}</td>
+                                 <td>{{ layout.margem_vertical_qr_mm }}</td>
+                                 <td>{{ layout.nome_fonte }}</td>
+                                 <td>{% if layout.padrao %}<i class="fas fa-check text-success"></i>{% endif %}</td>
+                             </tr>
+                         {% endfor %}
+                         </tbody>
+                     </table>
+                 {% else %}
+                     <p>{{ __('No layouts fetched yet.', 'directlabelprinter') }}</p>
+                 {% endif %}
+
+             </div>
+        </div>
+
+        {# --- Save Button --- #}
+        <div class="card card-flush shadow-sm m-6">
+            <div class="card-footer d-flex justify-content-end py-6 px-9">
+                 {# Standard GLPI Save button #}
+                 <button type="submit" name="update" value="{{ _x('button', 'Save') }}" class="btn btn-primary">
+                     <i class="ti ti-device-floppy me-2"></i> {{ _x('button', 'Save') }}
+                 </button>
+            </div>
+        </div>
+
+    </form>
+{% else %}
+    {# Display read-only view or message if user doesn't have edit rights #}
+    <p>{{ __("You don't have permission to edit this configuration.") }}</p>
+    {# You could optionally display the configuration values here without form fields #}
+{% endif %}
+
+{# Placeholder for JavaScript - will be added later for button actions #}
+<script>
+    // We will add JS logic here for Test Connection and Fetch Layouts buttons
+    document.getElementById('test_connection_btn').addEventListener('click', function() {
+        alert('Test Connection logic not yet implemented.');
+        // TODO: Implement AJAX call to test API authentication
+    });
+
+    document.getElementById('fetch_layouts_btn').addEventListener('click', function() {
+        alert('Fetch Layouts logic not yet implemented.');
+        // TODO: Implement AJAX call to fetch layouts from API and save them
+    });
+
+    // We might need JS to handle the default layout selection save via PATCH
+</script>

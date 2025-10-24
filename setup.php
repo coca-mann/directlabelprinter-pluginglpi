@@ -42,11 +42,24 @@ define("PLUGIN_DIRECTLABELPRINTER_MIN_GLPI_VERSION", "11.0.0");
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
 define("PLUGIN_DIRECTLABELPRINTER_MAX_GLPI_VERSION", "11.0.99");
 
+use Glpi\Plugin\Hooks;
+use GlpiPlugin\Directlabelprinter\Config; // Import the new Config class
+
 /**
  * Init hooks of the plugin.
  * REQUIRED
  */
-function plugin_init_directlabelprinter(): void {}
+function plugin_init_directlabelprinter() {
+    global $PLUGIN_HOOKS, $CFG_GLPI;
+
+    // ... (keep existing hooks like csrf_compliant) ...
+    $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
+
+    // Register the Config class to add a tab on the core Config page [cite: 4098-4099]
+    Plugin::registerClass(Config::class, ['addtabon' => \Config::class]); // Use the core \Config here
+
+    // You might add other class registrations or hooks here later
+}
 
 /**
  * Get the name and the version of the plugin
@@ -69,7 +82,7 @@ function plugin_init_directlabelprinter(): void {}
 function plugin_version_directlabelprinter(): array
 {
     return [
-        'name'           => 'directlabelprinter',
+        'name'           => 'Direct Label Printer',
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
         'author'         => '<a href="http://www.teclib.com">Teclib\'</a>',
         'license'        => '',
