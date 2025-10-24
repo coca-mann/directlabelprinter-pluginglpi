@@ -60,6 +60,8 @@ function plugin_init_directlabelprinter() {
     // Register the Config class to add a tab on the core Config page [cite: 4098-4099]
     Plugin::registerClass(PluginConfig::class, ['addtabon' => CoreConfig::class]); // Use the core Config class
 
+    $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
+
     // You might add other class registrations or hooks here later
 }
 

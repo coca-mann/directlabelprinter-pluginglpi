@@ -128,13 +128,11 @@ function plugin_directlabelprinter_uninstall() {
  * @return array Array de ações a serem adicionadas
  */
 function plugin_directlabelprinter_MassiveActions($itemtype) {
-    // ----> LINHA DE DEBUG <----
-    // Escreve no log do GLPI (geralmente files/_log/php-errors.log ou debug.log)
-    Toolbox::logInFile("debug", "[DirectLabelPrinter] Hook _MassiveActions chamado para itemtype: " . $itemtype);
+    // Linha de log (opcional, remova se não for mais necessária)
+    // Toolbox::logInFile("debug", "[DirectLabelPrinter] Hook _MassiveActions chamado para itemtype: " . $itemtype);
 
     $actions = [];
 
-    // Lista de itemtypes considerados "Ativos"
     $asset_types = [
         'Computer', 'Monitor', 'NetworkEquipment', 'Printer', 'Phone', 'Peripheral',
     ];
@@ -142,19 +140,15 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
     if (in_array($itemtype, $asset_types)) {
         $action_key = 'print_label';
         $action_label = __('Imprimir Etiqueta', 'directlabelprinter');
-        // Usar nome completo da classe (FQCN) aqui para garantir
+        // ---> Use FQCN (Nome Completo da Classe) <---
         $action_class = \GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions::class;
-        $separator = \MassiveAction::CLASS_ACTION_SEPARATOR; // Usar FQCN aqui também
-
-        // Logar a chave que está sendo gerada
-        Toolbox::logInFile("debug", "[DirectLabelPrinter] Gerando chave de ação: " . $action_class . $separator . $action_key);
+        $separator = \MassiveAction::CLASS_ACTION_SEPARATOR; // ---> Use FQCN <---
 
         $actions[$action_class . $separator . $action_key] = $action_label;
-    } else {
-         Toolbox::logInFile("debug", "[DirectLabelPrinter] Itemtype " . $itemtype . " não é um ativo, nenhuma ação adicionada.");
     }
-
 
     return $actions;
 }
+
+
 ?>
