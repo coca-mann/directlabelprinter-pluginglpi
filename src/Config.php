@@ -10,8 +10,8 @@ use Glpi\Application\View\TemplateRenderer;
 use Plugin; // Needed for getWebDir, although deprecated, might be useful for now
 use Toolbox; // Import Toolbox class
 
-// Import the DbUtils class for database interaction
-use Glpi\Toolbox\DbUtils;
+// Import the DB class for database interaction
+use DB;
 
 
 class Config extends CoreConfig // Extend the core Config class [cite: 4082-4084]
@@ -99,8 +99,10 @@ class Config extends CoreConfig // Extend the core Config class [cite: 4082-4084
         $current_config = self::getConfigValues();
 
         // Retrieve saved layouts from DB to populate dropdown
-        $dbu = new DbUtils();
-        $layouts_from_db = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_layouts');
+        global $DB;
+        $layouts_from_db = $DB->request([
+            'FROM' => 'glpi_plugin_directlabelprinter_layouts'
+        ])->fetchAll();
         $layout_options = [];
         $default_layout_id = null;
         foreach ($layouts_from_db as $layout) {
