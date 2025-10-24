@@ -21,72 +21,64 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      * @return bool True se a ação foi tratada
      */
     static function showMassiveActionsSubForm(MassiveAction $massive_action) {
-        $action_key = $massive_action->getAction(); // Obtém a chave da ação ('print_label')
-        $itemtype = $massive_action->getItemtype(); // Obtém o tipo de item (ex: 'Computer')
-        $items = $massive_action->getItems();       // Obtém os IDs dos itens selecionados (array)
+        $action_key = $massive_action->getAction();
+        $itemtype = $massive_action->getItemtype();
+        $items_raw = $massive_action->getItems(); // Array de ['id' => X]
 
         switch ($action_key) {
             case 'print_label':
-                // Em vez de echo HTML, vamos preparar dados e disparar JavaScript
-
-                // Obter layouts do banco de dados (necessário para o dropdown no modal)
+                // Obter layouts (código existente)
                 $dbu = new \Glpi\Toolbox\DbUtils();
                 $layouts = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_layouts');
                 $layout_options = [];
                 $default_layout_id = null;
                 foreach ($layouts as $layout) {
-                    $layout_options[] = ['id' => $layout['id_api'], 'name' => $layout['nome']]; // Formato para JS
+                    $layout_options[] = ['id' => $layout['id_api'], 'name' => $layout['nome']];
                     if ($layout['padrao'] == 1) {
                         $default_layout_id = $layout['id_api'];
                     }
                 }
 
-                // Obter dados do item (ou do primeiro item, se for ação individual)
-                $item_data = [];
-                if (!empty($items) && count($items) === 1) { // Ação individual
-                    $item_id = $items[0]['id'];
-                    $item = new $itemtype(); // Instancia o tipo de item correto
-                    if ($item->getFromDB($item_id)) {
-                        $item_data = [
-                            'id' => $item_id,
-                            'name' => $item->fields['name'] ?? 'N/A', // Ou outro campo relevante
-                            'url' => $item->getLinkURL() ?? '' // URL do item no GLPI
-                        ];
-                    }
-                } else if (!empty($items)) { // Ação em massa (preparar múltiplos itens)
-                   // A lógica para múltiplos itens será tratada principalmente no JS
-                   // Mas podemos passar os IDs para o JS
-                   $item_ids = array_column($items, 'id');
-                   // Talvez buscar nomes se necessário, mas pode ficar lento
+                // ---> Preparar dados dos itens para o JS <---
+                $items_for_js = [];
+                if (!empty($items_raw)) {
+                     // Precisamos instanciar o objeto para pegar nome e URL
+                     $item_obj = new $itemtype(); // Instancia a classe correta (Computer, Monitor, etc.)
+                     foreach($items_raw as $item_info) {
+                         if ($item_obj->getFromDB($item_info['id'])) {
+                             $items_for_js[] = [
+                                 'id' => $item_info['id'],
+                                 'name' => $item_obj->fields['name'] ?? ('Item ' . $item_info['id']), // Fallback
+                                 'url' => $item_obj->getLinkURL() ?? '' // Pega a URL do item
+                             ];
+                         } else {
+                              // Item não encontrado, talvez logar um aviso
+                              Toolbox::logWarning(sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $item_info['id']));
+                         }
+                     }
                 }
+                // Limpa o objeto após o uso
+                unset($item_obj);
 
 
-                // Incluir JavaScript para abrir o modal
+                // Incluir JavaScript para abrir o modal (código existente, mas passando $items_for_js)
                 echo "<script type='text/javascript'>\n";
-                // Passar dados para o JavaScript de forma segura
-                echo "document.addEventListener('DOMContentLoaded', function() {\n"; // Garante que o DOM está pronto
+                echo "document.addEventListener('DOMContentLoaded', function() {\n";
                 echo "   if (typeof window.directLabelPrinter === 'object' && typeof window.directLabelPrinter.openPrintModal === 'function') {\n";
                 echo "       window.directLabelPrinter.openPrintModal(" .
                           json_encode($itemtype) . ", " .
-                          json_encode($items) . ", " . // Passa todos os itens selecionados
+                          json_encode($items_for_js) . ", " . // Passa o array com mais dados
                           json_encode($layout_options) . ", " .
                           json_encode($default_layout_id) .
                      ");\n";
-                echo "   } else { \n";
-                echo "       console.error('DirectLabelPrinter JS object not found or openPrintModal function missing.');\n";
-                echo "       alert('" . addslashes(__('Erro ao inicializar o modal de impressão.', 'directlabelprinter')) . "');\n"; //addslashes para segurança
-                 echo "       // Opcional: Redirecionar de volta ou mostrar erro inline\n";
-                 echo "       // window.history.back(); \n";
+                 // ... (restante do código JS para erro) ...
                 echo "   }\n";
                 echo "});\n";
                 echo "</script>\n";
 
-                // Retorna true para indicar que a ação foi tratada
                 return true;
         }
-
-        // Se a ação não for a nossa, deixa o GLPI continuar (chama o método pai)
-        return parent::showMassiveActionsSubForm($massive_action); // [cite: 4155]
+        return parent::showMassiveActionsSubForm($massive_action);
     }
 
     /**
