@@ -9,8 +9,8 @@
         <input type="hidden" name="_glpi_csrf_token" value="{{ csrf_token() }}">
         {# Hidden field telling GLPI which Config class processed the tab #}
         <input type="hidden" name="config_class" value="GlpiPlugin\\Directlabelprinter\\Config">
-        {# Hidden field defining the context for saving config values - CORRIGIDO #}
-        <input type="hidden" name="config_context" value="{{ 'plugin:' ~ plugin_name }}">
+        {# Hidden field defining the context for saving config values #}
+        <input type="hidden" name="config_context" value="plugin:{{ plugin_name }}">
 
         {# --- Authentication Section --- #}
         <div class="card card-flush shadow-sm m-6">
@@ -33,7 +33,7 @@
 
                 {{ fields.passwordField(
                     'api_password',
-                    null,
+                    null, {# Changed from '' to null, likely not the cause but trying variations #}
                     __('Password', 'directlabelprinter')
                 ) }}
 
@@ -67,13 +67,13 @@
                  {# Display Layout Details (Read-only) #}
                  <h4 class="mt-5">{{ __('Layout Details', 'directlabelprinter') }}</h4>
 
-                 {# --- Restaure este bloco se o erro desaparecer --- #}
-
+                 {# --- START OF COMMENTED OUT SECTION --- #}
+                 {#
                  {% if layouts is not empty %}
                      <table class='tab_cadre_fixehov'>
                          <thead>
                              <tr>
-                                 <th>{{ __('Name') }}</th>
+                                 <th>{{ __('Name') }}</th> {# Line 62 was here #}
                                  <th>{{ __('Description') }}</th>
                                  <th>{{ __('Width (mm)') }}</th>
                                  <th>{{ __('Height (mm)') }}</th>
@@ -103,7 +103,8 @@
                  {% else %}
                      <p>{{ __('No layouts fetched yet.', 'directlabelprinter') }}</p>
                  {% endif %}
-
+                 #}
+                 {# --- END OF COMMENTED OUT SECTION --- #}
 
              </div>
         </div>
