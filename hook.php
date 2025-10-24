@@ -126,33 +126,13 @@ function plugin_directlabelprinter_uninstall() {
  *
  * @return array Array de ações a serem adicionadas
  */
-function plugin_directlabelprinter_MassiveActions($itemtype) { // [cite: 4161-4165]
+function plugin_directlabelprinter_MassiveActions($itemtype) {
     $actions = [];
-
-    // Lista de itemtypes considerados "Ativos"
-    // Adicione ou remova tipos conforme necessário
-    $asset_types = [
-        'Computer',
-        'Monitor',
-        'NetworkEquipment',
-        'Printer',
-        'Phone',
-        'Peripheral',
-        // Adicionar outros tipos de ativos aqui, se houver...
-        // 'Rack', 'PDU', 'PassiveEquipment', etc.
-    ];
-
-    // Verifica se o itemtype atual é um dos tipos de ativo definidos
-    if (in_array($itemtype, $asset_types)) {
-        // Define a ação "Imprimir Etiqueta"
-        $action_key = 'print_label'; // Chave única para a ação
-        $action_label = __('Imprimir Etiqueta', 'directlabelprinter'); // Label traduzível
-        $action_class = DirectLabelPrinterActions::class; // Classe que vai lidar com a ação
-
-        // Formato: 'Namespace\Classe::ACTION_SEPARATOR.chave_acao' => 'Label da Ação'
-        $actions[$action_class . MassiveAction::CLASS_ACTION_SEPARATOR . $action_key] = $action_label; // [cite: 4164]
-    }
-
+    // TEMPORARIAMENTE SEM O IF PARA TESTE
+    $action_key = 'print_label';
+    $action_label = __('Imprimir Etiqueta', 'directlabelprinter');
+    $action_class = \GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions::class; // Usar FQCN aqui por segurança
+    $actions[$action_class . \MassiveAction::CLASS_ACTION_SEPARATOR . $action_key] = $action_label;
     return $actions;
 }
 ?>
