@@ -22,7 +22,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      */
     static function showMassiveActionsSubForm(MassiveAction $massive_action) {
         $action_key = $massive_action->getAction();
-        $itemtype = $massive_action->getItemtype();
+        $itemtype = $massive_action->itemtype;
         $items_raw = $massive_action->getItems(); // Array de ['id' => X]
 
         switch ($action_key) {
