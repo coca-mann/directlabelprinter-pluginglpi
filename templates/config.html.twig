@@ -10,7 +10,7 @@
         {# Hidden field telling GLPI which Config class processed the tab #}
         <input type="hidden" name="config_class" value="GlpiPlugin\\Directlabelprinter\\Config">
         {# Hidden field defining the context for saving config values #}
-        <input type="hidden" name="config_context" value="plugin:{{ plugin_name }}">
+        <input type="hidden" name="config_context" value="{{ 'plugin:' ~ plugin_name }}">
 
         {# --- Authentication Section --- #}
         <div class="card card-flush shadow-sm m-6">
