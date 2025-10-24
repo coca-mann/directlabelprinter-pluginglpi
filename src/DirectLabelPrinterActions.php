@@ -45,7 +45,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
             } else {
                 // Último recurso: usar Computer como padrão
                 $itemtype = 'Computer';
-                Toolbox::logWarning("DirectLabelPrinter: Não foi possível determinar o itemtype, usando 'Computer' como padrão");
+                Toolbox::logInFile("directlabelprinter", "DirectLabelPrinter: Não foi possível determinar o itemtype, usando 'Computer' como padrão");
             }
         }
         $items_raw = $massive_action->getItems(); // Array de ['id' => X]
@@ -80,7 +80,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                              ];
                          } else {
                               // Item não encontrado, talvez logar um aviso
-                              Toolbox::logWarning(sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $item_info['id']));
+                              Toolbox::logInFile("directlabelprinter", sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $item_info['id']));
                          }
                      }
                 }
