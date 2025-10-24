@@ -139,7 +139,7 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
 
     if (in_array($itemtype, $asset_types)) {
         $action_key = 'print_label';
-        $action_label = __('Imprimir Etiqueta', 'directlabelprinter');
+        $action_label = "<i class='fas fa-print'></i> " . __('Imprimir Etiqueta', 'directlabelprinter');
         // ---> Use FQCN (Nome Completo da Classe) <---
         $action_class = \GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions::class;
         $separator = \MassiveAction::CLASS_ACTION_SEPARATOR; // ---> Use FQCN <---
