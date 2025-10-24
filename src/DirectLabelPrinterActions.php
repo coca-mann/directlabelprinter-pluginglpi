@@ -29,17 +29,17 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
 
         switch ($action_key) {
             case 'print_label':
-                // Obter layouts (código existente)
+                // Obter layouts (código corrigido)
                 global $DB;
                 $iterator = $DB->request([
                     'FROM' => 'glpi_plugin_directlabelprinter_layouts'
-                ])->fetchAll();
+                ]);
                 $layout_options = [];
                 $default_layout_id = null;
                 foreach ($iterator as $layout) {
-                    $layout_options[] = ['id' => $row['id_api'], 'name' => $row['nome']];
-                    if ($row['padrao'] == 1) {
-                        $default_layout_id = $row['id_api'];
+                    $layout_options[] = ['id' => $layout['id_api'], 'name' => $layout['nome']];
+                    if ($layout['padrao'] == 1) {
+                        $default_layout_id = $layout['id_api'];
                     }
                 }
 
