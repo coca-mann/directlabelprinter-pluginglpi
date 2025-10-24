@@ -100,9 +100,13 @@ class Config extends CoreConfig // Extend the core Config class [cite: 4082-4084
 
         // Retrieve saved layouts from DB to populate dropdown
         global $DB;
-        $layouts_from_db = $DB->request([
+        $layouts_from_db = [];
+        $iterator = $DB->request([
             'FROM' => 'glpi_plugin_directlabelprinter_layouts'
-        ])->fetchAll();
+        ]);
+        foreach ($iterator as $row) {
+            $layouts_from_db[] = $row;
+        }
         $layout_options = [];
         $default_layout_id = null;
         foreach ($layouts_from_db as $layout) {
