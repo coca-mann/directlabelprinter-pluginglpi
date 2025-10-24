@@ -33,7 +33,7 @@
 
                 {{ fields.passwordField(
                     'api_password',
-                    null, {# Changed from '' to null, likely not the cause but trying variations #}
+                    null,
                     __('Password', 'directlabelprinter')
                 ) }}
 
@@ -57,9 +57,9 @@
 
                  <div class="mt-4">
                      {{ fields.dropdownFieldFromArray(
-                         'default_layout_id_api',   {# Name corresponds to config key #}
-                         layout_options,            {# Array of id_api => nome #}
-                         default_layout_id,         {# Pre-select the default layout #}
+                         'default_layout_id_api',
+                         layout_options,
+                         default_layout_id,
                          __('Default Layout', 'directlabelprinter')
                      ) }}
                  </div>
