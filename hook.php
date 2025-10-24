@@ -11,6 +11,7 @@ use Config as CoreConfig; // Import the core Config class
 use DBConnection;
 use Migration;
 use MassiveAction;
+use Toolbox;
 
 define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.1'); // Make sure this matches your setup.php version
 
@@ -127,12 +128,33 @@ function plugin_directlabelprinter_uninstall() {
  * @return array Array de ações a serem adicionadas
  */
 function plugin_directlabelprinter_MassiveActions($itemtype) {
+    // ----> LINHA DE DEBUG <----
+    // Escreve no log do GLPI (geralmente files/_log/php-errors.log ou debug.log)
+    Toolbox::logInFile("debug", "[DirectLabelPrinter] Hook _MassiveActions chamado para itemtype: " . $itemtype);
+
     $actions = [];
-    // TEMPORARIAMENTE SEM O IF PARA TESTE
-    $action_key = 'print_label';
-    $action_label = __('Imprimir Etiqueta', 'directlabelprinter');
-    $action_class = \GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions::class; // Usar FQCN aqui por segurança
-    $actions[$action_class . \MassiveAction::CLASS_ACTION_SEPARATOR . $action_key] = $action_label;
+
+    // Lista de itemtypes considerados "Ativos"
+    $asset_types = [
+        'Computer', 'Monitor', 'NetworkEquipment', 'Printer', 'Phone', 'Peripheral',
+    ];
+
+    if (in_array($itemtype, $asset_types)) {
+        $action_key = 'print_label';
+        $action_label = __('Imprimir Etiqueta', 'directlabelprinter');
+        // Usar nome completo da classe (FQCN) aqui para garantir
+        $action_class = \GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions::class;
+        $separator = \MassiveAction::CLASS_ACTION_SEPARATOR; // Usar FQCN aqui também
+
+        // Logar a chave que está sendo gerada
+        Toolbox::logInFile("debug", "[DirectLabelPrinter] Gerando chave de ação: " . $action_class . $separator . $action_key);
+
+        $actions[$action_class . $separator . $action_key] = $action_label;
+    } else {
+         Toolbox::logInFile("debug", "[DirectLabelPrinter] Itemtype " . $itemtype . " não é um ativo, nenhuma ação adicionada.");
+    }
+
+
     return $actions;
 }
 ?>
