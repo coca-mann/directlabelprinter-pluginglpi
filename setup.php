@@ -43,7 +43,9 @@ define("PLUGIN_DIRECTLABELPRINTER_MIN_GLPI_VERSION", "11.0.0");
 define("PLUGIN_DIRECTLABELPRINTER_MAX_GLPI_VERSION", "11.0.99");
 
 use Glpi\Plugin\Hooks;
-use GlpiPlugin\Directlabelprinter\Config; // Import the new Config class
+use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import the new Config class with alias
+use Config as CoreConfig; // Import the core Config class
+use Plugin; // Import the Plugin class
 
 /**
  * Init hooks of the plugin.
@@ -56,7 +58,7 @@ function plugin_init_directlabelprinter() {
     $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
 
     // Register the Config class to add a tab on the core Config page [cite: 4098-4099]
-    Plugin::registerClass(Config::class, ['addtabon' => \Config::class]); // Use the core \Config here
+    Plugin::registerClass(PluginConfig::class, ['addtabon' => CoreConfig::class]); // Use the core Config class
 
     // You might add other class registrations or hooks here later
 }

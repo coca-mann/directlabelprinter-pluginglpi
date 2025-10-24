@@ -4,6 +4,7 @@ use Glpi\Plugin\Hooks;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\System\RequirementsManager;
 use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import your plugin's Config class
+use Config as CoreConfig; // Import the core Config class
 
 // Import necessary classes for database operations
 use DBConnection;

@@ -8,6 +8,7 @@ use Html;
 use Session;
 use Glpi\Application\View\TemplateRenderer;
 use Plugin; // Needed for getWebDir, although deprecated, might be useful for now
+use Toolbox; // Import Toolbox class
 
 // Import the DbUtils class for database interaction
 use Glpi\Toolbox\DbUtils;
