@@ -1,48 +1,106 @@
 <?php
 
-/**
- * -------------------------------------------------------------------------
- * directlabelprinter plugin for GLPI
- * -------------------------------------------------------------------------
- *
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- * -------------------------------------------------------------------------
- * @copyright Copyright (C) 2025 by the directlabelprinter plugin team.
- * @license   MIT https://opensource.org/licenses/mit-license.php
- * @link      https://github.com/pluginsGLPI/directlabelprinter
- * -------------------------------------------------------------------------
- */
+use Glpi\Plugin\Hooks;
+use Glpi\Application\View\TemplateRenderer;
+use Glpi\System\RequirementsManager;
+
+// Import necessary classes for database operations
+use DBConnection;
+use Migration;
+
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.1'); // Make sure this matches your setup.php version
 
 /**
- * Plugin install process
+ * Install hook
+ * - Creates database tables
+ *
+ * @return boolean
  */
-function plugin_directlabelprinter_install(): bool
-{
-    return true;
+function plugin_directlabelprinter_install() {
+    global $DB;
+
+    // Instantiate migration helper with current plugin version
+    $migration = new Migration(PLUGIN_DIRECTLABELPRINTER_VERSION); // [cite: 3226-3227, 3908, 3917]
+
+    $auth_table_name = 'glpi_plugin_directlabelprinter_auth';
+    $layouts_table_name = 'glpi_plugin_directlabelprinter_layouts';
+
+    // Get default charset and collation for table creation
+    $default_charset = DBConnection::getDefaultCharset(); // [cite: 3907]
+    $default_collation = DBConnection::getDefaultCollation(); // [cite: 3907]
+
+    // --- Create Auth Table ---
+    // Check if table already exists before creating [cite: 3228-3229, 3909]
+    if (!$DB->tableExists($auth_table_name)) {
+        $query_auth = "CREATE TABLE `$auth_table_name` (
+                        `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                        `user` VARCHAR(255) DEFAULT NULL,
+                        `password` VARCHAR(255) DEFAULT NULL COMMENT 'Consider encrypting this',
+                        `access_token` TEXT DEFAULT NULL,
+                        `refresh_token` TEXT DEFAULT NULL,
+                        PRIMARY KEY (`id`)
+                      ) ENGINE=InnoDB
+                      DEFAULT CHARSET={$default_charset}
+                      COLLATE={$default_collation}"; // [cite: 3231-3238, 3910]
+        $DB->doQuery($query_auth) or die("Error creating table $auth_table_name"); // [cite: 3910] Using doQuery instead of queryOrDie to avoid potential issues in older GLPI versions
+    } else {
+         // If table exists, you might add migration steps here for future plugin updates
+         // Example: $migration->addField($auth_table_name, 'new_field', 'VARCHAR(255)');
+    }
+
+
+    // --- Create Layouts Table ---
+    if (!$DB->tableExists($layouts_table_name)) {
+        $query_layouts = "CREATE TABLE `$layouts_table_name` (
+                            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                            `id_api` INT UNSIGNED DEFAULT NULL COMMENT 'ID from the external API',
+                            `nome` VARCHAR(255) DEFAULT NULL,
+                            `descricao` TEXT DEFAULT NULL,
+                            `largura_mm` DECIMAL(10,2) DEFAULT NULL,
+                            `altura_mm` DECIMAL(10,2) DEFAULT NULL,
+                            `altura_titulo_mm` DECIMAL(10,2) DEFAULT NULL,
+                            `tamanho_fonte_titulo` INT DEFAULT NULL,
+                            `margem_vertical_qr_mm` DECIMAL(10,2) DEFAULT NULL,
+                            `nome_fonte` VARCHAR(255) DEFAULT NULL,
+                            `padrao` TINYINT(1) NOT NULL DEFAULT '0',
+                            PRIMARY KEY (`id`),
+                            UNIQUE KEY `idx_id_api` (`id_api`) COMMENT 'Ensure API ID is unique'
+                          ) ENGINE=InnoDB
+                          DEFAULT CHARSET={$default_charset}
+                          COLLATE={$default_collation}"; // [cite: 3231-3238, 3910]
+        $DB->doQuery($query_layouts) or die("Error creating table $layouts_table_name"); // [cite: 3910]
+    } else {
+        // Migration steps for layouts table if needed in future versions
+    }
+
+    // Execute any pending migrations (like adding fields in updates)
+    $migration->executeMigration(); // [cite: 3239-3240, 3911]
+
+    return true; // Indicate successful installation [cite: 3878]
 }
 
 /**
- * Plugin uninstall process
+ * Uninstall hook
+ * - Drops database tables
+ *
+ * @return boolean
  */
-function plugin_directlabelprinter_uninstall(): bool
-{
-    return true;
+function plugin_directlabelprinter_uninstall() {
+    global $DB;
+
+    $tables_to_drop = [
+        'glpi_plugin_directlabelprinter_auth',
+        'glpi_plugin_directlabelprinter_layouts'
+    ]; // [cite: 3297, 3927]
+
+    foreach ($tables_to_drop as $table) {
+        if ($DB->tableExists($table)) { // [cite: 3309]
+            $DB->doQuery("DROP TABLE `$table`"); // [cite: 3310-3313, 3928]
+        }
+    }
+
+    return true; // Indicate successful uninstallation [cite: 3877]
 }
+
+// You might add other hooks here later
+?>
