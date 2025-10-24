@@ -24,7 +24,28 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      */
     static function showMassiveActionsSubForm(MassiveAction $massive_action) {
         $action_key = $massive_action->getAction();
-        $itemtype = $massive_action->itemtype;
+        // Obter o itemtype de forma mais robusta
+        $itemtype = null;
+        
+        // Tentar diferentes abordagens para obter o itemtype
+        if (method_exists($massive_action, 'getType')) {
+            $itemtype = $massive_action->getType();
+        } elseif (method_exists($massive_action, 'getItemType')) {
+            $itemtype = $massive_action->getItemType();
+        } elseif (property_exists($massive_action, 'itemtype') && isset($massive_action->itemtype)) {
+            $itemtype = $massive_action->itemtype;
+        } elseif (method_exists($massive_action, 'getCurrentItemType')) {
+            $itemtype = $massive_action->getCurrentItemType();
+        } else {
+            // Fallback: tentar obter do contexto da requisição
+            if (isset($_REQUEST['itemtype'])) {
+                $itemtype = $_REQUEST['itemtype'];
+            } else {
+                // Último recurso: usar Computer como padrão
+                $itemtype = 'Computer';
+                Toolbox::logWarning("DirectLabelPrinter: Não foi possível determinar o itemtype, usando 'Computer' como padrão");
+            }
+        }
         $items_raw = $massive_action->getItems(); // Array de ['id' => X]
 
         switch ($action_key) {
@@ -108,10 +129,10 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                      // O JS já terá os dados necessários ou fará buscas adicionais.
 
                     // Marca o item como OK no resumo da ação em massa do GLPI
-                    $massive_action->itemDone($item->getType(), $id, MassiveAction::ACTION_OK); // [cite: 4157]
+                    $massive_action->itemDone($item->getType(), $id, MassiveAction::ACTION_OK);
                 }
                 // Adiciona uma mensagem geral (opcional)
-                // $massive_action->addMessage("Ação 'Imprimir Etiqueta' iniciada."); // [cite: 4158]
+                // $massive_action->addMessage("Ação 'Imprimir Etiqueta' iniciada.");
                 return; // Importante retornar aqui para não executar o processamento pai
         }
 
