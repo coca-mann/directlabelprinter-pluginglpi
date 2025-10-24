@@ -4,11 +4,13 @@ use Glpi\Plugin\Hooks;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\System\RequirementsManager;
 use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import your plugin's Config class
+use GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions; // Vamos criar esta classe a seguir
 use Config as CoreConfig; // Import the core Config class
 
 // Import necessary classes for database operations
 use DBConnection;
 use Migration;
+use MassiveAction;
 
 define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.1'); // Make sure this matches your setup.php version
 
@@ -116,5 +118,41 @@ function plugin_directlabelprinter_uninstall() {
     return true; // Indicate successful uninstallation [cite: 3877]
 }
 
-// You might add other hooks here later
+
+/**
+ * Hook para adicionar ações (em massa e/ou individuais) aos itemtypes.
+ *
+ * @param string $itemtype O tipo de item (ex: 'Computer')
+ *
+ * @return array Array de ações a serem adicionadas
+ */
+function plugin_directlabelprinter_MassiveActions($itemtype) { // [cite: 4161-4165]
+    $actions = [];
+
+    // Lista de itemtypes considerados "Ativos"
+    // Adicione ou remova tipos conforme necessário
+    $asset_types = [
+        'Computer',
+        'Monitor',
+        'NetworkEquipment',
+        'Printer',
+        'Phone',
+        'Peripheral',
+        // Adicionar outros tipos de ativos aqui, se houver...
+        // 'Rack', 'PDU', 'PassiveEquipment', etc.
+    ];
+
+    // Verifica se o itemtype atual é um dos tipos de ativo definidos
+    if (in_array($itemtype, $asset_types)) {
+        // Define a ação "Imprimir Etiqueta"
+        $action_key = 'print_label'; // Chave única para a ação
+        $action_label = __('Imprimir Etiqueta', 'directlabelprinter'); // Label traduzível
+        $action_class = DirectLabelPrinterActions::class; // Classe que vai lidar com a ação
+
+        // Formato: 'Namespace\Classe::ACTION_SEPARATOR.chave_acao' => 'Label da Ação'
+        $actions[$action_class . MassiveAction::CLASS_ACTION_SEPARATOR . $action_key] = $action_label; // [cite: 4164]
+    }
+
+    return $actions;
+}
 ?>
