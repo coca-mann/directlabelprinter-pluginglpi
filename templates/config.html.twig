@@ -33,7 +33,7 @@
 
                 {{ fields.passwordField(
                     'api_password',
-                    null,
+                    null, {# Changed from '' to null, likely not the cause but trying variations #}
                     __('Password', 'directlabelprinter')
                 ) }}
 
@@ -66,11 +66,14 @@
 
                  {# Display Layout Details (Read-only) #}
                  <h4 class="mt-5">{{ __('Layout Details', 'directlabelprinter') }}</h4>
+
+                 {# --- START OF COMMENTED OUT SECTION --- #}
+                 {#
                  {% if layouts is not empty %}
                      <table class='tab_cadre_fixehov'>
                          <thead>
                              <tr>
-                                 <th>{{ __('Name') }}</th>
+                                 <th>{{ __('Name') }}</th> {# Line 62 was here #}
                                  <th>{{ __('Description') }}</th>
                                  <th>{{ __('Width (mm)') }}</th>
                                  <th>{{ __('Height (mm)') }}</th>
@@ -100,6 +103,8 @@
                  {% else %}
                      <p>{{ __('No layouts fetched yet.', 'directlabelprinter') }}</p>
                  {% endif %}
+                 #}
+                 {# --- END OF COMMENTED OUT SECTION --- #}
 
              </div>
         </div>
