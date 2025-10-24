@@ -1,5 +1,7 @@
 {# Import GLPI form macros for standard fields #}
 {% import "components/form/fields_macros.html.twig" as fields %}
+{% import "@directlabelprinter/_fields_macros_override.html.twig" as custom_fields %}
+
 
 {# Check if the user has edit rights #}
 {% if can_edit %}
@@ -56,11 +58,7 @@
                  <span id="fetch_status" class="ms-2"></span> {# Area to show fetch result #}
 
                  <div class="mt-4">
-                     {% if fields.dropdownArrayField is defined %}
-                        {{ fields.dropdownArrayField('default_layout_id_api', layout_options, default_layout_id, __('Default Layout', 'directlabelprinter')) }}
-                    {% else %}
-                        {{ fields.dropdownFieldFromArray('default_layout_id_api', layout_options, default_layout_id, __('Default Layout', 'directlabelprinter')) }}
-                    {% endif %}
+                     {{ custom_fields.dropdownFieldFromArray('default_layout_id_api', layout_options, default_layout_id, __('Default Layout', 'directlabelprinter')) }}
                  </div>
 
                  {# Display Layout Details (Read-only) #}

@@ -1,0 +1,8 @@
+{% macro dropdownFieldFromArray(name, options, value, label) %}
+  <label for="{{ name }}">{{ label }}</label>
+  <select name="{{ name }}" id="{{ name }}">
+    {% for key, text in options %}
+      <option value="{{ key }}" {% if key == value %}selected{% endif %}>{{ text }}</option>
+    {% endfor %}
+  </select>
+{% endmacro %}
