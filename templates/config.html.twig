@@ -56,12 +56,12 @@
                  <span id="fetch_status" class="ms-2"></span> {# Area to show fetch result #}
 
                  <div class="mt-4">
-                     {{ fields.dropdownFieldFromArray(
-                         'default_layout_id_api',
-                         layout_options,
-                         default_layout_id,
-                         __('Default Layout', 'directlabelprinter')
-                     ) }}
+                     {{ fields.dropdownField(
+                        'default_layout_id_api',
+                        layout_options,
+                        default_layout_id,
+                        __('Default Layout', 'directlabelprinter')
+                    ) }}
                  </div>
 
                  {# Display Layout Details (Read-only) #}
