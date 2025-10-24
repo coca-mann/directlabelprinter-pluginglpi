@@ -30,6 +30,8 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
         // Tentar diferentes abordagens para obter o itemtype
         if (method_exists($massive_action, 'getType')) {
             $itemtype = $massive_action->getType();
+        } elseif (method_exists($massive_action, 'getItemtype')) {
+            $itemtype = $massive_action->getItemtype(true); // Passa true para incluir namespace da classe
         } elseif (method_exists($massive_action, 'getItemType')) {
             $itemtype = $massive_action->getItemType();
         } elseif (property_exists($massive_action, 'itemtype') && isset($massive_action->itemtype)) {
