@@ -6,6 +6,8 @@ use CommonDBTM;
 use Html;
 use MassiveAction;
 use Session;
+use Glpi\Toolbox\DbUtils;
+use Toolbox;
 
 /**
  * Classe para lidar com as ações customizadas do plugin DirectLabelPrinter.
@@ -28,7 +30,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
         switch ($action_key) {
             case 'print_label':
                 // Obter layouts (código existente)
-                $dbu = new \Glpi\Toolbox\DbUtils();
+                $dbu = new DbUtils();
                 $layouts = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_layouts');
                 $layout_options = [];
                 $default_layout_id = null;
