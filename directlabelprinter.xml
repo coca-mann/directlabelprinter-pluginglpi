@@ -1,0 +1,55 @@
+<root>
+   <name>directlabelprinter</name>
+   <key>directlabelprinter</key>
+   <!-- stable, beta, development, alpha, ... -->
+   <state>stable</state>
+   <logo>https://raw.githubusercontent.com/pluginsGLPI/directlabelprinter/main/directlabelprinter.png</logo>
+   <description>
+      <short>
+         <!-- Add as many lang tag you want -->
+         <en>directlabelprinter GLPI plugin</en>
+         <fr>Plugin GLPI directlabelprinter</fr>
+      </short>
+      <long>
+         <!-- Add as many lang tag you want -->
+         <en>A long description for directlabelprinter GLPI plugin.</en>
+         <fr>Une description longue pour le plugin GLPI directlabelprinter.</fr>
+      </long>
+   </description>
+   <homepage>https://github.com/pluginsGLPI/directlabelprinter</homepage>
+   <download>https://github.com/pluginsGLPI/directlabelprinter/releases</download>
+   <issues>https://github.com/pluginsGLPI/directlabelprinter/issues</issues>
+   <readme>https://github.com/pluginsGLPI/directlabelprinter/blob/main/README.md</readme>
+   <authors>
+      <!-- Add as many author tag you want -->
+      <author>Teclib'</author>
+   </authors>
+   <versions>
+      <!-- Add as many version tag you want -->
+      <version>
+         <num>0.0.1</num>
+         <!-- Add as many compatibility tag you want -->
+         <compatibility>~11.0.0</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <!-- Add as many lang tag you want -->
+      <lang>en_GB</lang>
+      <lang>fr_FR</lang>
+   </langs>
+   <license>MIT</license>
+   <!--tags>
+      <en>
+         <tag>One tag</tag>
+         <tag>Another tag</tag>
+      </en>
+      <fr>
+         <tag>Un tag</tag>
+         <tag>Un autre tag</tag>
+      </fr>
+   </tags-->
+   <!--screenshots>
+      <screenshot>https://github.com/pluginsGLPI/directlabelprinter/raw/main/screenshot.png</screenshot>
+      <screenshot>https://github.com/pluginsGLPI/directlabelprinter/raw/main/screenshot2.png</screenshot>
+   </screenshots-->
+</root>
