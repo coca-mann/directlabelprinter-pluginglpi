@@ -62,7 +62,7 @@ function plugin_init_directlabelprinter() {
 
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
-    $relative_build_path = '/public/build/plugins/directlabelprinter/js/directlabelprinter.js';
+    $relative_build_path = 'public/build/plugins/directlabelprinter/js/directlabelprinter.js';
     $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
         $relative_build_path // Caminho relativo à raiz do plugin
     ];
