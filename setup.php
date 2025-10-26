@@ -62,28 +62,9 @@ function plugin_init_directlabelprinter() {
 
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
-    // ---> ALTERAÇÃO AQUI: Construir a URL explícita <---
-
-    // 1. Define o caminho relativo DENTRO do diretório web público
-    //    A partir de 'public/', onde fica o index.php
-    $relative_build_path = '/build/plugins/directlabelprinter/js/directlabelprinter.js';
-
-    // 2. Concatena com a raiz web do GLPI ($CFG_GLPI['root_doc'])
-    //    $CFG_GLPI['root_doc'] pode ser '' (se GLPI está na raiz do domínio)
-    //    ou '/glpi' (se GLPI está em um subdiretório)
-    //    Isso garante que a URL funcione em ambos os casos.
-    $js_web_url = ($CFG_GLPI['root_doc'] ?? '') . $relative_build_path;
-
-    // Adiciona um timestamp simples para tentar evitar cache do navegador durante testes
-    $js_web_url .= '?v=' . time();
-
-    // 3. Passa a URL completa para o hook
     $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
-        $js_web_url
+        'js/directlabelprinter.js'
     ];
-
-    // Log para depuração (verifique files/_log/php-errors.log ou debug.log)
-    Toolbox::logInFile("debug", "[DirectLabelPrinter] Tentando adicionar JS com URL: " . $js_web_url);
 }
 
 /**
