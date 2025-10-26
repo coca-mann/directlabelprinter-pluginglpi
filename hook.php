@@ -55,7 +55,7 @@ function plugin_directlabelprinter_install() {
         $migration->addField(
             $auth_table_name,
             'access_token_expires',
-            'DATETIME', // Tipo de dado
+            'timestamp', // Tipo de dado
             ['null' => true, 'default' => null] // Opções (permite nulo, sem valor padrão)
         );
     }
