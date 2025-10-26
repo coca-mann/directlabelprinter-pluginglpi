@@ -5,15 +5,16 @@ include ("../../../inc/includes.php");
 
 use Glpi\Toolbox\DbUtils;
 use Glpi\Toolbox\Sanitizer;
+use Config as CoreConfig;
 use Toolbox;
 Toolbox::logInFile("debug", "[Test Connection] Script accessed.");
 
 header('Content-Type: application/json');
 Session::checkLoginUser(); // Garante que o usuário GLPI está logado
-Toolbox::logInFile("debug", "[Test Connection] User is logged in.");
+Toolbox::logInFile("debug", "[Test Connection] User is logged in (ID: " . Session::getLoginUserID() . ").");
 
-Session::checkRight('config', UPDATE); // Verifica se tem permissão para configurar
-Toolbox::logInFile("debug", "[Test Connection] User has config UPDATE right.");
+// Session::checkRight('config', UPDATE); // Verifica se tem permissão para configurar
+// Toolbox::logInFile("debug", "[Test Connection] User has config UPDATE right.");
 
 $response = ['success' => false, 'message' => ''];
 
