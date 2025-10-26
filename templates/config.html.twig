@@ -543,8 +543,8 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             resultMessage = `Erro: ${error.message}`;
             resultType = 'error';
         } finally {
-            testBtn.disabled = false;
-            testBtn.innerHTML = __('Test Connection', 'directlabelprinter'); // Restaura texto original do botão
+            testBtn.disabled = false; // <-- GARANTIR QUE ESTÁ AQUI
+            testBtn.innerHTML = 'Testar Conexão'; // <-- E AQUI (Idealmente usar a tradução __())
             // Chama o modal para exibir o resultado final
             showResultModal(resultMessage, resultType);
         }
@@ -617,8 +617,6 @@ if (document.readyState === 'loading') {
     addListenersWhenReady();
 }
 
-// Adicione estas funções DENTRO do bloco <script> no config.html.twig
-
 /**
  * Cria e exibe um modal simples com a mensagem de resultado.
  * @param {string} message - A mensagem a ser exibida.
@@ -626,25 +624,27 @@ if (document.readyState === 'loading') {
  */
 function showResultModal(message, type = 'info') {
     // Remove modal anterior se existir
-    closeResultModal();
+    closeResultModal(); // Garante que qualquer modal/overlay anterior seja removido
 
     const title = (type === 'success') ? 'Conexão Bem-Sucedida' : (type === 'error' ? 'Erro na Conexão' : 'Resultado');
     const titleBgColor = (type === 'success') ? '#dff0d8' : (type === 'error' ? '#f2dede' : '#d9edf7');
     const titleColor = (type === 'success') ? '#3c763d' : (type === 'error' ? '#a94442' : '#31708f');
     const messageColor = titleColor;
 
+    // ---> Adicionado estilo para quebra de linha <---
     const modalHtml = `
         <div id="dlp-result-modal" style="display: none; padding: 20px; background-color: white; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1003; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); min-width: 300px; max-width: 450px; border-radius: 5px;">
             <h4 style="padding: 10px; margin: -20px -20px 20px -20px; background-color: ${titleBgColor}; color: ${titleColor}; border-bottom: 1px solid #ccc; border-top-left-radius: 5px; border-top-right-radius: 5px;">${title}</h4>
-            <button title="Fechar" style="position: absolute; right: 5px; top: 5px; background: none; border: none; font-size: 1.2em; cursor: pointer;" onclick="closeResultModal()">×</button>
-            <div style="color: ${messageColor}; margin-bottom: 20px;">
+            <button title="Fechar" style="position: absolute; right: 5px; top: 5px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #555;" onclick="closeResultModal()">×</button>
+            <div style="color: ${messageColor}; margin-bottom: 20px; max-height: 200px; overflow-y: auto; word-wrap: break-word; /* Quebra de linha */">
                 ${message}
             </div>
             <div style="text-align: right;">
                 <button class="btn btn-secondary" onclick="closeResultModal()">Fechar</button>
             </div>
         </div>
-        <div id="dlp-result-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1002;"></div>
+        {/* ---> Adicionado onclick ao overlay <--- */}
+        <div id="dlp-result-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1002;" onclick="closeResultModal()"></div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHtml);
@@ -656,10 +656,30 @@ function showResultModal(message, type = 'info') {
  * Fecha o modal de resultado.
  */
 function closeResultModal() {
+    console.log("Attempting to close result modal..."); // Log para depuração
     const modal = document.getElementById('dlp-result-modal');
     const overlay = document.getElementById('dlp-result-overlay');
-    if (modal) modal.remove();
-    if (overlay) overlay.remove();
+    if (modal) {
+        modal.remove();
+        console.log("Result modal removed.");
+    } else {
+        console.log("Result modal not found to remove.");
+    }
+    if (overlay) {
+        overlay.remove();
+        console.log("Result overlay removed.");
+    } else {
+         console.log("Result overlay not found to remove.");
+    }
+
+    // Re-habilita o botão de teste caso tenha sido desabilitado e não re-habilitado no 'finally'
+    const testBtn = document.getElementById('test_connection_btn');
+    if (testBtn && testBtn.disabled) {
+        testBtn.disabled = false;
+        // Restaura o texto original (pode precisar buscar a tradução novamente ou armazená-la)
+        testBtn.innerHTML = 'Testar Conexão';
+         console.log("Test connection button re-enabled by closeResultModal.");
+    }
 }
 
 // Fim das novas funções
