@@ -62,9 +62,9 @@ function plugin_init_directlabelprinter() {
 
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
-    $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
-        'js/directlabelprinter.js'
-    ];
+    // $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
+    //    'js/directlabelprinter.js'
+    // ];
 }
 
 /**
