@@ -92,9 +92,9 @@ function plugin_version_directlabelprinter(): array
     return [
         'name'           => 'Direct Label Printer',
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
-        'author'         => '<a href="http://www.teclib.com">Teclib\'</a>',
+        'author'         => '<a href="https://github.com/coca-mann">Juliano Ostroski\'</a>',
         'license'        => '',
-        'homepage'       => '',
+        'homepage'       => 'https://github.com/coca-mann/directlabelprinter-pluginglpi',
         'requirements'   => [
             'glpi' => [
                 'min' => PLUGIN_DIRECTLABELPRINTER_MIN_GLPI_VERSION,
