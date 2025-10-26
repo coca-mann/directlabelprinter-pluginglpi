@@ -1,15 +1,19 @@
 <?php
 // ajax/test_connection.php
-define('DO_NOT_CHECK_HTTP_REFERER', 1); // Simplificação, considere CSRF
 
 include ("../../../inc/includes.php");
 
-header('Content-Type: application/json');
-Session::checkLoginUser(); // Garante que o usuário GLPI está logado
-// Session::checkRight('config', UPDATE); // Verifica se tem permissão para configurar
-
 use Glpi\Toolbox\DbUtils;
 use Glpi\Toolbox\Sanitizer;
+use Toolbox;
+Toolbox::logInFile("debug", "[Test Connection] Script accessed.");
+
+header('Content-Type: application/json');
+Session::checkLoginUser(); // Garante que o usuário GLPI está logado
+Toolbox::logInFile("debug", "[Test Connection] User is logged in.");
+
+Session::checkRight('config', UPDATE); // Verifica se tem permissão para configurar
+Toolbox::logInFile("debug", "[Test Connection] User has config UPDATE right.");
 
 $response = ['success' => false, 'message' => ''];
 
