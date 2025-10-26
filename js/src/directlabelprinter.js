@@ -328,5 +328,139 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         }
     }
 
+    // Adicionar listeners aos botões da PÁGINA DE CONFIGURAÇÃO quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', function() {
+        const testBtn = document.getElementById('test_connection_btn');
+        if (testBtn) { // Verifica se o botão existe na página atual (página de config)
+            testBtn.addEventListener('click', handleTestConnectionClick);
+        }
+
+        const fetchBtn = document.getElementById('fetch_layouts_btn');
+        if (fetchBtn) { // Verifica se o botão existe
+            fetchBtn.addEventListener('click', handleFetchLayoutsClick);
+        }
+
+        // Nota: O listener para 'dlp-send-btn' é adicionado dentro de openPrintModal
+        // porque o botão só existe depois que o modal é criado dinamicamente.
+    });
+
+    // --- NOVA FUNÇÃO ---
+    // Função para o botão Testar Conexão na página de configuração
+    async function handleTestConnectionClick() {
+        const statusSpan = document.getElementById('connection_status');
+        const apiUrlInput = document.querySelector('input[name="api_url"]');
+        const apiUserInput = document.querySelector('input[name="api_user"]');
+        const apiPasswordInput = document.querySelector('input[name="api_password"]');
+        const testBtn = document.getElementById('test_connection_btn');
+
+        if (!apiUrlInput || !apiUserInput || !apiPasswordInput || !statusSpan || !testBtn) {
+            console.error('Elementos do formulário de autenticação não encontrados.');
+            return;
+        }
+
+        const apiUrl = apiUrlInput.value.trim();
+        const apiUser = apiUserInput.value.trim();
+        const apiPassword = apiPasswordInput.value;
+
+        if (!apiUrl || !apiUser || !apiPassword) {
+            statusSpan.textContent = __('Preencha URL, Usuário e Senha.', 'directlabelprinter'); // Idealmente usar gettext JS
+            statusSpan.style.color = 'red';
+            return;
+        }
+
+        statusSpan.textContent = __('Testando...', 'directlabelprinter'); // Idealmente usar gettext JS
+        statusSpan.style.color = 'orange';
+        testBtn.disabled = true;
+
+        const ajaxUrl = `${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/test_connection.php`;
+        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+
+        try {
+            const response = await fetch(ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Glpi-Csrf-Token': csrfToken // Envia token CSRF
+                },
+                body: JSON.stringify({
+                    config: { // Envia os dados dentro de uma chave 'config'
+                        api_url: apiUrl,
+                        api_user: apiUser,
+                        api_password: apiPassword
+                    }
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || `Erro HTTP ${response.status}`);
+            }
+
+            // Sucesso
+            statusSpan.textContent = result.message;
+            statusSpan.style.color = 'green';
+            apiPasswordInput.value = ''; // Limpa campo de senha
+
+        } catch (error) {
+            console.error('Erro no teste de conexão:', error);
+            statusSpan.textContent = `Erro: ${error.message}`;
+            statusSpan.style.color = 'red';
+        } finally {
+            testBtn.disabled = false;
+        }
+    }
+
+    // --- NOVA FUNÇÃO ---
+    // Função para o botão Buscar Layouts na página de configuração
+    async function handleFetchLayoutsClick() {
+        const statusSpan = document.getElementById('fetch_status');
+        const fetchBtn = document.getElementById('fetch_layouts_btn');
+
+        if (!statusSpan || !fetchBtn) {
+            console.error('Elementos de busca de layout não encontrados.');
+            return;
+        }
+
+        statusSpan.textContent = __('Buscando...', 'directlabelprinter'); // Idealmente usar gettext JS
+        statusSpan.style.color = 'orange';
+        fetchBtn.disabled = true;
+
+        const ajaxUrl = `${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/fetch_layouts.php`;
+        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+
+        try {
+            const response = await fetch(ajaxUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Glpi-Csrf-Token': csrfToken
+                }
+                // Não precisa de body para este endpoint
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || `Erro HTTP ${response.status}`);
+            }
+
+            // Sucesso
+            statusSpan.textContent = result.message;
+            statusSpan.style.color = 'green';
+
+            // Recarregar a página para mostrar os layouts
+            alert(__('Layouts buscados com sucesso! A página será recarregada.', 'directlabelprinter')); // Idealmente usar gettext JS
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Erro ao buscar layouts:', error);
+            statusSpan.textContent = `Erro: ${error.message}`;
+            statusSpan.style.color = 'red';
+        } finally {
+            fetchBtn.disabled = false;
+        }
+    }
+
 
 })(window.directLabelPrinter);

@@ -37,20 +37,27 @@ function plugin_directlabelprinter_install() {
     // --- Create Auth Table ---
     // Check if table already exists before creating [cite: 3228-3229, 3909]
     if (!$DB->tableExists($auth_table_name)) {
+        // Query de criação original
         $query_auth = "CREATE TABLE `$auth_table_name` (
                         `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
                         `user` VARCHAR(255) DEFAULT NULL,
-                        `password` VARCHAR(255) DEFAULT NULL COMMENT 'Consider encrypting this',
+                        `password` VARCHAR(255) DEFAULT NULL COMMENT 'Consider encrypting/removing after first auth',
                         `access_token` TEXT DEFAULT NULL,
                         `refresh_token` TEXT DEFAULT NULL,
+                        `access_token_expires` DATETIME DEFAULT NULL COMMENT 'Timestamp for access token expiry', // <-- NOVO CAMPO
                         PRIMARY KEY (`id`)
                       ) ENGINE=InnoDB
                       DEFAULT CHARSET={$default_charset}
-                      COLLATE={$default_collation}"; // [cite: 3231-3238, 3910]
-        $DB->doQuery($query_auth) or die("Error creating table $auth_table_name"); // [cite: 3910] Using doQuery instead of queryOrDie to avoid potential issues in older GLPI versions
+                      COLLATE={$default_collation}";
+        $DB->doQuery($query_auth) or die("Error creating table $auth_table_name");
     } else {
-         // If table exists, you might add migration steps here for future plugin updates
-         // Example: $migration->addField($auth_table_name, 'new_field', 'VARCHAR(255)');
+        // --- Migration: Adicionar o campo se a tabela já existe ---
+        $migration->addField(
+            $auth_table_name,
+            'access_token_expires',
+            'DATETIME', // Tipo de dado
+            ['null' => true, 'default' => null] // Opções (permite nulo, sem valor padrão)
+        );
     }
 
 
