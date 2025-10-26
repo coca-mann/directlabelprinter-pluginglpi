@@ -546,7 +546,8 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             testBtn.disabled = false; // <-- GARANTIR QUE ESTÁ AQUI
             testBtn.innerHTML = 'Testar Conexão'; // <-- E AQUI (Idealmente usar a tradução __())
             // Chama o modal para exibir o resultado final
-            showResultModal(resultMessage, resultType);
+            console.log("Calling showResultModal with:", { message: resultMessage, type: resultType });
+            showResultModal(resultMessage, resultType); // Chama o modal aprimorado
         }
     }
 
@@ -623,40 +624,62 @@ if (document.readyState === 'loading') {
  * @param {string} type - 'success' ou 'error' para estilização básica.
  */
 function showResultModal(message, type = 'info') {
+    // Log para depurar a mensagem recebida
+    console.log("showResultModal received message:", message);
+    console.log("showResultModal received type:", type);
+
     // Remove modal anterior se existir
-    closeResultModal(); // Garante que qualquer modal/overlay anterior seja removido
+    closeResultModal();
 
     const title = (type === 'success') ? 'Conexão Bem-Sucedida' : (type === 'error' ? 'Erro na Conexão' : 'Resultado');
     const titleBgColor = (type === 'success') ? '#dff0d8' : (type === 'error' ? '#f2dede' : '#d9edf7');
     const titleColor = (type === 'success') ? '#3c763d' : (type === 'error' ? '#a94442' : '#31708f');
-    const messageColor = titleColor;
+    // Usar cores mais neutras para a mensagem, independentemente do tipo, para melhor legibilidade
+    // const messageColor = titleColor;
 
-    // ---> Adicionado estilo para quebra de linha <---
+    // Estrutura HTML do modal
     const modalHtml = `
-        <div id="dlp-result-modal" style="display: none; padding: 20px; background-color: white; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1003; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); min-width: 300px; max-width: 450px; border-radius: 5px;">
-            <h4 style="padding: 10px; margin: -20px -20px 20px -20px; background-color: ${titleBgColor}; color: ${titleColor}; border-bottom: 1px solid #ccc; border-top-left-radius: 5px; border-top-right-radius: 5px;">${title}</h4>
-            <button title="Fechar" style="position: absolute; right: 5px; top: 5px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #555;" onclick="closeResultModal()">×</button>
-            <div style="color: ${messageColor}; margin-bottom: 20px; max-height: 200px; overflow-y: auto; word-wrap: break-word; /* Quebra de linha */">
-                ${message}
+        <div id="dlp-result-modal" style="display: none; padding: 20px; background-color: white; border: 1px solid #ccc; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 1051; /* z-index maior */ position: fixed; top: 30%; /* Um pouco mais para cima */ left: 50%; transform: translate(-50%, -50%); min-width: 300px; max-width: 500px; /* Largura máxima maior */ border-radius: 6px;">
+            {/* Cabeçalho */}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; margin: -20px -20px 15px -20px; background-color: ${titleBgColor}; color: ${titleColor}; border-bottom: 1px solid #ccc; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                <h4 style="margin: 0; font-size: 1.1em;">${title}</h4>
+                <button title="Fechar" style="background: none; border: none; font-size: 1.8em; cursor: pointer; color: #555; padding: 0 5px; line-height: 1;" onclick="closeResultModal()">×</button>
             </div>
-            <div style="text-align: right;">
+            {/* Corpo da Mensagem - ID adicionado */}
+            <div id="dlp-result-message-content" style="margin-bottom: 20px; max-height: 300px; /* Altura máxima maior */ overflow-y: auto; white-space: pre-wrap; /* Quebra linha e preserva espaços */ word-wrap: break-word;">
+                {/* O texto será inserido aqui via textContent */}
+            </div>
+            {/* Rodapé */}
+            <div style="text-align: right; padding-top: 10px; border-top: 1px solid #eee;">
                 <button class="btn btn-secondary" onclick="closeResultModal()">Fechar</button>
             </div>
         </div>
-        {/* ---> Adicionado onclick ao overlay <--- */}
-        <div id="dlp-result-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1002;" onclick="closeResultModal()"></div>
+        {/* Overlay */}
+        <div id="dlp-result-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); /* Mais escuro */ z-index: 1050;" onclick="closeResultModal()"></div>
     `;
 
+    // Adiciona o HTML ao body
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    document.getElementById('dlp-result-overlay').style.display = 'block';
-    document.getElementById('dlp-result-modal').style.display = 'block';
+
+    // Encontra o div da mensagem e define o textContent (IMPORTANTE!)
+    const messageDiv = document.getElementById('dlp-result-message-content');
+    if (messageDiv) {
+        messageDiv.textContent = message; // Define o texto de forma segura
+    } else {
+        console.error("Elemento 'dlp-result-message-content' não encontrado após inserir HTML do modal.");
+    }
+
+    // Mostra o overlay e o modal
+    const overlayElement = document.getElementById('dlp-result-overlay');
+    const modalElement = document.getElementById('dlp-result-modal');
+
+    if (overlayElement) overlayElement.style.display = 'block';
+    if (modalElement) modalElement.style.display = 'block';
 }
 
-/**
- * Fecha o modal de resultado.
- */
+// A função closeResultModal permanece a mesma (com os logs de depuração)
 function closeResultModal() {
-    console.log("Attempting to close result modal..."); // Log para depuração
+    console.log("Attempting to close result modal...");
     const modal = document.getElementById('dlp-result-modal');
     const overlay = document.getElementById('dlp-result-overlay');
     if (modal) {
