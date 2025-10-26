@@ -506,7 +506,17 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando...'; // Feedback visual no botão
 
         const ajaxUrl = `${window.CFG_GLPI?.root_doc || ''}/plugins/directlabelprinter/ajax/test_connection.php`;
-        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+        const csrfTokenElement = document.querySelector('input[name="_glpi_csrf_token"]');
+            const csrfToken = csrfTokenElement ? csrfTokenElement.value : ''; // Pega o valor se o elemento existir
+            console.log("CSRF Token found in hidden input:", csrfToken); // Loga o token encontrado
+            if (!csrfToken) {
+                console.error("CSRF token input field not found or has no value!");
+                // Poderia mostrar um erro para o usuário aqui também
+                showResultModal("Erro interno: Token de segurança não encontrado.", 'error');
+                testBtn.disabled = false;
+                testBtn.innerHTML = __('Test Connection', 'directlabelprinter');
+                return; // Interrompe a execução
+            }
 
         let resultMessage = '';
         let resultType = 'error'; // Assume erro por padrão
@@ -526,6 +536,8 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                     }
                 })
             });
+
+            console.log("Fetch request sent with X-Glpi-Csrf-Token header.");
 
             const result = await response.json();
 
