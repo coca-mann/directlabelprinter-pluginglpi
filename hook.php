@@ -44,7 +44,7 @@ function plugin_directlabelprinter_install() {
                         `password` VARCHAR(255) DEFAULT NULL COMMENT 'Consider encrypting/removing after first auth',
                         `access_token` TEXT DEFAULT NULL,
                         `refresh_token` TEXT DEFAULT NULL,
-                        `access_token_expires` DATETIME DEFAULT NULL COMMENT 'Timestamp for access token expiry', // <-- NOVO CAMPO
+                        `access_token_expires` DATETIME DEFAULT NULL COMMENT 'Timestamp for access token expiry',
                         PRIMARY KEY (`id`)
                       ) ENGINE=InnoDB
                       DEFAULT CHARSET={$default_charset}
