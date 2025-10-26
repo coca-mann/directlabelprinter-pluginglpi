@@ -453,17 +453,37 @@ window.directLabelPrinter = window.directLabelPrinter || {};
 
     // Função para adicionar listeners aos botões da PÁGINA DE CONFIGURAÇÃO
     function addConfigPageListeners() {
-        console.log("Adding config page listeners...");
+        console.log("=== addConfigPageListeners called ===");
+        console.log("Document ready state:", document.readyState);
+        console.log("All buttons on page:", document.querySelectorAll('button'));
+        
         const testBtn = document.getElementById('test_connection_btn');
         console.log("Searching for test_connection_btn:", testBtn);
+        console.log("Button element details:", testBtn ? {
+            id: testBtn.id,
+            type: testBtn.type,
+            className: testBtn.className,
+            textContent: testBtn.textContent
+        } : 'NOT FOUND');
+        
         if (testBtn) {
+            // Remove any existing listeners first
+            testBtn.removeEventListener('click', handleTestConnectionClick);
+            
             testBtn.addEventListener('click', function(event) {
-                console.log("Click event detected on test_connection_btn.");
+                console.log("=== CLICK EVENT DETECTED ===");
+                console.log("Event:", event);
+                console.log("Target:", event.target);
                 handleTestConnectionClick();
             });
             console.log("Click listener added to test_connection_btn.");
+            
+            // Test if the button is clickable
+            console.log("Button disabled state:", testBtn.disabled);
+            console.log("Button style display:", window.getComputedStyle(testBtn).display);
         } else {
             console.warn("Button 'test_connection_btn' not found!");
+            console.log("Available elements with 'test' in id:", document.querySelectorAll('[id*="test"]'));
         }
 
         const fetchBtn = document.getElementById('fetch_layouts_btn');
@@ -600,13 +620,35 @@ window.directLabelPrinter = window.directLabelPrinter || {};
     }
 })(window.directLabelPrinter);
 
-// Adicionar listeners quando o DOM estiver pronto (FORA da IIFE)
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOMContentLoaded fired - adding config page listeners");
+// Função para adicionar listeners (executa imediatamente ou quando DOM estiver pronto)
+function addListenersWhenReady() {
+    console.log("Adding config page listeners...");
     if (window.directLabelPrinter && window.directLabelPrinter.addConfigPageListeners) {
         window.directLabelPrinter.addConfigPageListeners();
     } else {
         console.error("DirectLabelPrinter not available or addConfigPageListeners not found");
     }
-});
+}
+
+// Executar imediatamente se DOM já estiver pronto, senão aguardar DOMContentLoaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addListenersWhenReady);
+} else {
+    // DOM já está pronto, executar imediatamente
+    addListenersWhenReady();
+}
+
+// Teste adicional após 1 segundo para garantir que tudo foi carregado
+setTimeout(function() {
+    console.log("=== TIMEOUT TEST ===");
+    const testBtn = document.getElementById('test_connection_btn');
+    console.log("Button found in timeout test:", testBtn);
+    if (testBtn) {
+        console.log("Adding manual click test...");
+        testBtn.addEventListener('click', function() {
+            console.log("MANUAL TEST CLICK DETECTED!");
+            alert("MANUAL TEST: Botão clicado!");
+        });
+    }
+}, 1000);
 </script>
