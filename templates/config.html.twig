@@ -474,14 +474,19 @@ window.directLabelPrinter = window.directLabelPrinter || {};
     // --- NOVA FUNÇÃO ---
     // Função para o botão Testar Conexão na página de configuração
     async function handleTestConnectionClick() {
-        const statusSpan = document.getElementById('connection_status');
+    // const statusSpan = document.getElementById('connection_status'); // Não precisamos mais do span aqui
         const apiUrlInput = document.querySelector('input[name="api_url"]');
         const apiUserInput = document.querySelector('input[name="api_user"]');
         const apiPasswordInput = document.querySelector('input[name="api_password"]');
         const testBtn = document.getElementById('test_connection_btn');
 
-        if (!apiUrlInput || !apiUserInput || !apiPasswordInput || !statusSpan || !testBtn) {
+        // Fechar modal de resultado anterior, se existir
+        closeResultModal();
+
+        if (!apiUrlInput || !apiUserInput || !apiPasswordInput || !testBtn) {
             console.error('Elementos do formulário de autenticação não encontrados.');
+            // Mostra erro no modal se os campos não forem encontrados
+            showResultModal('Erro interno: Elementos do formulário não encontrados.', 'error');
             return;
         }
 
@@ -490,27 +495,31 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         const apiPassword = apiPasswordInput.value;
 
         if (!apiUrl || !apiUser || !apiPassword) {
-            statusSpan.textContent = 'Preencha URL, Usuário e Senha.';
-            statusSpan.style.color = 'red';
+            // Mostra erro no modal se os campos estiverem vazios
+            showResultModal('Preencha URL, Usuário e Senha.', 'error');
             return;
         }
 
-        statusSpan.textContent = 'Testando...';
-        statusSpan.style.color = 'orange';
+        // statusSpan.textContent = 'Testando...'; // Remove a atualização do span
+        // statusSpan.style.color = 'orange';
         testBtn.disabled = true;
+        testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando...'; // Feedback visual no botão
 
         const ajaxUrl = `${window.CFG_GLPI?.root_doc || ''}/plugins/directlabelprinter/ajax/test_connection.php`;
         const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+
+        let resultMessage = '';
+        let resultType = 'error'; // Assume erro por padrão
 
         try {
             const response = await fetch(ajaxUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Glpi-Csrf-Token': csrfToken // Envia token CSRF
+                    'X-Glpi-Csrf-Token': csrfToken
                 },
                 body: JSON.stringify({
-                    config: { // Envia os dados dentro de uma chave 'config'
+                    config: {
                         api_url: apiUrl,
                         api_user: apiUser,
                         api_password: apiPassword
@@ -525,16 +534,19 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             }
 
             // Sucesso
-            statusSpan.textContent = result.message;
-            statusSpan.style.color = 'green';
+            resultMessage = result.message;
+            resultType = 'success';
             apiPasswordInput.value = ''; // Limpa campo de senha
 
         } catch (error) {
             console.error('Erro no teste de conexão:', error);
-            statusSpan.textContent = `Erro: ${error.message}`;
-            statusSpan.style.color = 'red';
+            resultMessage = `Erro: ${error.message}`;
+            resultType = 'error';
         } finally {
             testBtn.disabled = false;
+            testBtn.innerHTML = __('Test Connection', 'directlabelprinter'); // Restaura texto original do botão
+            // Chama o modal para exibir o resultado final
+            showResultModal(resultMessage, resultType);
         }
     }
 
@@ -604,4 +616,51 @@ if (document.readyState === 'loading') {
     // DOM já está pronto, executar imediatamente
     addListenersWhenReady();
 }
+
+// Adicione estas funções DENTRO do bloco <script> no config.html.twig
+
+/**
+ * Cria e exibe um modal simples com a mensagem de resultado.
+ * @param {string} message - A mensagem a ser exibida.
+ * @param {string} type - 'success' ou 'error' para estilização básica.
+ */
+function showResultModal(message, type = 'info') {
+    // Remove modal anterior se existir
+    closeResultModal();
+
+    const title = (type === 'success') ? 'Conexão Bem-Sucedida' : (type === 'error' ? 'Erro na Conexão' : 'Resultado');
+    const titleBgColor = (type === 'success') ? '#dff0d8' : (type === 'error' ? '#f2dede' : '#d9edf7');
+    const titleColor = (type === 'success') ? '#3c763d' : (type === 'error' ? '#a94442' : '#31708f');
+    const messageColor = titleColor;
+
+    const modalHtml = `
+        <div id="dlp-result-modal" style="display: none; padding: 20px; background-color: white; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1003; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); min-width: 300px; max-width: 450px; border-radius: 5px;">
+            <h4 style="padding: 10px; margin: -20px -20px 20px -20px; background-color: ${titleBgColor}; color: ${titleColor}; border-bottom: 1px solid #ccc; border-top-left-radius: 5px; border-top-right-radius: 5px;">${title}</h4>
+            <button title="Fechar" style="position: absolute; right: 5px; top: 5px; background: none; border: none; font-size: 1.2em; cursor: pointer;" onclick="closeResultModal()">×</button>
+            <div style="color: ${messageColor}; margin-bottom: 20px;">
+                ${message}
+            </div>
+            <div style="text-align: right;">
+                <button class="btn btn-secondary" onclick="closeResultModal()">Fechar</button>
+            </div>
+        </div>
+        <div id="dlp-result-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1002;"></div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    document.getElementById('dlp-result-overlay').style.display = 'block';
+    document.getElementById('dlp-result-modal').style.display = 'block';
+}
+
+/**
+ * Fecha o modal de resultado.
+ */
+function closeResultModal() {
+    const modal = document.getElementById('dlp-result-modal');
+    const overlay = document.getElementById('dlp-result-overlay');
+    if (modal) modal.remove();
+    if (overlay) overlay.remove();
+}
+
+// Fim das novas funções
 </script>
