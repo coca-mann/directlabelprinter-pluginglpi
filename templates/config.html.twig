@@ -453,19 +453,26 @@ window.directLabelPrinter = window.directLabelPrinter || {};
 
     // Adicionar listeners aos botões da PÁGINA DE CONFIGURAÇÃO quando o DOM estiver pronto
     document.addEventListener('DOMContentLoaded', function() {
-        const testBtn = document.getElementById('test_connection_btn');
-        if (testBtn) { // Verifica se o botão existe na página atual (página de config)
-            testBtn.addEventListener('click', handleTestConnectionClick);
-        }
-
-        const fetchBtn = document.getElementById('fetch_layouts_btn');
-        if (fetchBtn) { // Verifica se o botão existe
-            fetchBtn.addEventListener('click', handleFetchLayoutsClick);
-        }
-
-        // Nota: O listener para 'dlp-send-btn' é adicionado dentro de openPrintModal
-        // porque o botão só existe depois que o modal é criado dinamicamente.
-    });
+    console.log("Inline DOMContentLoaded fired.");
+    const testBtn = document.getElementById('test_connection_btn');
+    console.log("Inline searching for test_connection_btn:", testBtn);
+    if (testBtn) {
+        // --- INÍCIO DO TESTE COM ALERT ---
+        testBtn.addEventListener('click', function(event) { // Adiciona 'event'
+            console.log("Click event detected on test_connection_btn."); // Log de clique
+            alert('TESTE: Botão Testar Conexão Clicado!'); // Alert para confirmação visual
+            // Prevenir comportamento padrão, se houver (improvável para type="button")
+            // event.preventDefault();
+            // Chamar a função real DEPOIS do alert e log
+            handleTestConnectionClick();
+        });
+        // --- FIM DO TESTE COM ALERT ---
+        console.log("Inline adding click listener (with alert) to test_connection_btn."); // Atualiza log
+    } else {
+         console.warn("Inline button 'test_connection_btn' not found!");
+    }
+    // ... listener para fetchBtn ...
+});
 
     // --- NOVA FUNÇÃO ---
     // Função para o botão Testar Conexão na página de configuração
