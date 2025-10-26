@@ -117,19 +117,3 @@
     <p>{{ __("You don't have permission to edit this configuration.") }}</p>
     {# You could optionally display the configuration values here without form fields #}
 {% endif %}
-
-{# Placeholder for JavaScript - will be added later for button actions #}
-<script>
-    // We will add JS logic here for Test Connection and Fetch Layouts buttons
-    document.getElementById('test_connection_btn').addEventListener('click', function() {
-        alert('Test Connection logic not yet implemented.');
-        // TODO: Implement AJAX call to test API authentication
-    });
-
-    document.getElementById('fetch_layouts_btn').addEventListener('click', function() {
-        alert('Fetch Layouts logic not yet implemented.');
-        // TODO: Implement AJAX call to fetch layouts from API and save them
-    });
-
-    // We might need JS to handle the default layout selection save via PATCH
-</script>
