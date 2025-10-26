@@ -451,28 +451,35 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         }
     }
 
-    // Adicionar listeners aos botões da PÁGINA DE CONFIGURAÇÃO quando o DOM estiver pronto
-    document.addEventListener('DOMContentLoaded', function() {
-    console.log("Inline DOMContentLoaded fired.");
-    const testBtn = document.getElementById('test_connection_btn');
-    console.log("Inline searching for test_connection_btn:", testBtn);
-    if (testBtn) {
-        // --- INÍCIO DO TESTE COM ALERT ---
-        testBtn.addEventListener('click', function(event) { // Adiciona 'event'
-            console.log("Click event detected on test_connection_btn."); // Log de clique
-            alert('TESTE: Botão Testar Conexão Clicado!'); // Alert para confirmação visual
-            // Prevenir comportamento padrão, se houver (improvável para type="button")
-            // event.preventDefault();
-            // Chamar a função real DEPOIS do alert e log
-            handleTestConnectionClick();
-        });
-        // --- FIM DO TESTE COM ALERT ---
-        console.log("Inline adding click listener (with alert) to test_connection_btn."); // Atualiza log
-    } else {
-         console.warn("Inline button 'test_connection_btn' not found!");
+    // Função para adicionar listeners aos botões da PÁGINA DE CONFIGURAÇÃO
+    function addConfigPageListeners() {
+        console.log("Adding config page listeners...");
+        const testBtn = document.getElementById('test_connection_btn');
+        console.log("Searching for test_connection_btn:", testBtn);
+        if (testBtn) {
+            testBtn.addEventListener('click', function(event) {
+                console.log("Click event detected on test_connection_btn.");
+                handleTestConnectionClick();
+            });
+            console.log("Click listener added to test_connection_btn.");
+        } else {
+            console.warn("Button 'test_connection_btn' not found!");
+        }
+
+        const fetchBtn = document.getElementById('fetch_layouts_btn');
+        if (fetchBtn) {
+            fetchBtn.addEventListener('click', function(event) {
+                console.log("Click event detected on fetch_layouts_btn.");
+                handleFetchLayoutsClick();
+            });
+            console.log("Click listener added to fetch_layouts_btn.");
+        } else {
+            console.warn("Button 'fetch_layouts_btn' not found!");
+        }
     }
-    // ... listener para fetchBtn ...
-});
+
+    // Expor a função para ser chamada externamente
+    dlp.addConfigPageListeners = addConfigPageListeners;
 
     // --- NOVA FUNÇÃO ---
     // Função para o botão Testar Conexão na página de configuração
@@ -493,16 +500,16 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         const apiPassword = apiPasswordInput.value;
 
         if (!apiUrl || !apiUser || !apiPassword) {
-            statusSpan.textContent = __('Preencha URL, Usuário e Senha.', 'directlabelprinter'); // Idealmente usar gettext JS
+            statusSpan.textContent = 'Preencha URL, Usuário e Senha.';
             statusSpan.style.color = 'red';
             return;
         }
 
-        statusSpan.textContent = __('Testando...', 'directlabelprinter'); // Idealmente usar gettext JS
+        statusSpan.textContent = 'Testando...';
         statusSpan.style.color = 'orange';
         testBtn.disabled = true;
 
-        const ajaxUrl = `${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/test_connection.php`;
+        const ajaxUrl = `${window.CFG_GLPI?.root_doc || ''}/plugins/directlabelprinter/ajax/test_connection.php`;
         const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
 
         try {
@@ -552,11 +559,11 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             return;
         }
 
-        statusSpan.textContent = __('Buscando...', 'directlabelprinter'); // Idealmente usar gettext JS
+        statusSpan.textContent = 'Buscando...';
         statusSpan.style.color = 'orange';
         fetchBtn.disabled = true;
 
-        const ajaxUrl = `${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/fetch_layouts.php`;
+        const ajaxUrl = `${window.CFG_GLPI?.root_doc || ''}/plugins/directlabelprinter/ajax/fetch_layouts.php`;
         const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
 
         try {
@@ -580,7 +587,7 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             statusSpan.style.color = 'green';
 
             // Recarregar a página para mostrar os layouts
-            alert(__('Layouts buscados com sucesso! A página será recarregada.', 'directlabelprinter')); // Idealmente usar gettext JS
+            alert('Layouts buscados com sucesso! A página será recarregada.');
             window.location.reload();
 
         } catch (error) {
@@ -592,4 +599,14 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         }
     }
 })(window.directLabelPrinter);
+
+// Adicionar listeners quando o DOM estiver pronto (FORA da IIFE)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOMContentLoaded fired - adding config page listeners");
+    if (window.directLabelPrinter && window.directLabelPrinter.addConfigPageListeners) {
+        window.directLabelPrinter.addConfigPageListeners();
+    } else {
+        console.error("DirectLabelPrinter not available or addConfigPageListeners not found");
+    }
+});
 </script>
