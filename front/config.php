@@ -98,7 +98,7 @@ try {
 // Exibir uma Mensagem Simples
 echo "<h1>Teste da Página de Configuração - Passo 3 (CSRF Token)</h1>";
 echo "<p>Se você vê esta mensagem, a busca no DB e a geração do token CSRF funcionaram (verifique os logs).</p>";
-echo "<p>CSRF Token Gerado: " . Html::clean($csrf_token_value) . "</p>"; // Mostra o token gerado na página
+echo "<p>CSRF Token Gerado: " . htmlspecialchars($csrf_token_value, ENT_QUOTES, 'UTF-8') . "</p>"; // Mostra o token gerado na página
 Toolbox::logInFile("debug", "[Config Page Step 3] Displaying simple message.");
 
 
