@@ -28,12 +28,22 @@ $config_page_url = Plugin::getWebDir('directlabelprinter', true) . "/front/confi
 $csrf_token_name = 'plugin_directlabelprinter_config_form'; // Nome consistente
 
 // --- Lógica de Processamento POST ---
-// --- Lógica de Processamento POST ---
 if ($can_edit && !empty($_POST)) {
-    // Verificar CSRF Token
-    Session::checkCSRF($csrf_token_name, $_POST['_glpi_csrf_token']);
+    // Verificar CSRF Token (usar a variável já definida globalmente)
 
-    try {
+    // ---> LOG ANTES DA VERIFICAÇÃO <---
+    $received_token = $_POST['_glpi_csrf_token'] ?? 'NÃO RECEBIDO'; // Pega o token recebido ou 'NÃO RECEBIDO'
+    // Tenta obter o token esperado da sessão (usando método interno, pode não ser público/estável)
+    // $expected_token = $_SESSION['glpi_csrf_token'][$csrf_token_name] ?? 'NÃO ENCONTRADO NA SESSÃO';
+    Toolbox::logInFile("debug", "[Config Page POST] Tentando verificar CSRF. Nome: $csrf_token_name");
+    Toolbox::logInFile("debug", "[Config Page POST] Token Recebido via POST: " . $received_token);
+    Toolbox::logInFile("debug", "[Config Page POST] Todos os campos POST recebidos: " . json_encode(array_keys($_POST)));
+    // Toolbox::logInFile("debug", "[Config Page POST] Token Esperado na Sessão: " . $expected_token); // Opcional, mais complexo
+    // ---> FIM DO LOG <---
+
+    try { // Coloca a verificação dentro do try/catch também
+        Session::checkCSRF($csrf_token_name, $_POST['_glpi_csrf_token']); // Linha ~34
+        Toolbox::logInFile("debug", "[Config Page POST] Verificação CSRF OK."); // Log se passou
         // --- AÇÃO: Testar Conexão ---
         if (isset($_POST['test_connection'])) {
             Toolbox::logInFile("debug", "[Config Page] Test Connection POST received.");
@@ -194,12 +204,26 @@ if ($can_edit && !empty($_POST)) {
 
     } catch (\Exception $e) {
         // Captura exceções de qualquer ação POST
-        Toolbox::logInFile("error", "[Config Page] General POST Error: " . $e->getMessage());
+        // Log específico para falha CSRF
+        if (strpos($e->getMessage(), 'CSRF') !== false || $e instanceof \Glpi\CsrfException) {
+             Toolbox::logInFile("error", "[Config Page POST] ERRO CSRF: " . $e->getMessage());
+        } else {
+             Toolbox::logInFile("error", "[Config Page POST] Erro Geral POST: " . $e->getMessage());
+        }
         Session::addMessageAfterRedirect(__('Erro: ', 'directlabelprinter') . $e->getMessage(), true, ERROR);
+        // Html::redirect($config_page_url); // Redireciona mesmo em erro
     }
 
     // Redirecionar em TODOS os casos POST para limpar o POST e mostrar mensagens
-    Html::redirect($config_page_url);
+    // Se foi erro CSRF, checkCSRF já pode ter interrompido e redirecionado.
+    if (isset($e) && !($e instanceof \Glpi\CsrfException) && strpos($e->getMessage(), 'CSRF') === false) {
+       // Se o erro NÃO foi CSRF, talvez não redirecionar para ver o erro?
+       // Mas geralmente redirecionamos para mostrar a mensagem de erro da sessão.
+       Html::redirect($config_page_url);
+    } else if (!isset($e)) {
+       // Se não houve exceção, redireciona.
+       Html::redirect($config_page_url);
+    }
 } // Fim do if (!empty($_POST))
 
 // --- Lógica de Exibição GET ---
@@ -218,10 +242,13 @@ foreach ($layouts_from_db as $layout) {
 
 // Gerar Token CSRF para o formulário
 $csrf_token_value = Session::getNewCSRFToken($csrf_token_name);
+Toolbox::logInFile("debug", "[Config Page GET] Token CSRF gerado: " . substr($csrf_token_value, 0, 20) . "... (primeiros 20 chars)");
+Toolbox::logInFile("debug", "[Config Page GET] Nome do token CSRF: " . $csrf_token_name);
 
 // --- Construir Formulário Diretamente com PHP/HTML ---
 echo "<form name='config_form_directlabelprinter' action='$config_page_url' method='POST' class='glpi_form'>";
 echo Html::hidden('_glpi_csrf_token', ['value' => $csrf_token_value]);
+Toolbox::logInFile("debug", "[Config Page GET] Campo hidden CSRF adicionado ao formulário com valor: " . substr($csrf_token_value, 0, 20) . "...");
 
 // --- Authentication Section ---
 echo "<div class='card card-flush shadow-sm m-6'>";
