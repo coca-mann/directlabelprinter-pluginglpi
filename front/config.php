@@ -6,28 +6,28 @@ include ("../../../inc/includes.php");
 use Toolbox;
 use Html;
 use Session;
-use Glpi\Application\View\TemplateRenderer; // Necessário para a próxima etapa
-use Config as CoreConfig; // Necessário para a próxima etapa
-use Plugin; // Necessário para getWebDir
+use Glpi\Application\View\TemplateRenderer;
+use Config as CoreConfig;
+use Plugin;
 
-Toolbox::logInFile("debug", "[Config Page Step 3] Script accessed. User ID: " . Session::getLoginUserID());
+Toolbox::logInFile("debug", "[Config Page Step 4] Script accessed. User ID: " . Session::getLoginUserID());
 
 // Verificar Permissão
 Session::checkRight('config', UPDATE);
-Toolbox::logInFile("debug", "[Config Page Step 3] Passed checkRight.");
+Toolbox::logInFile("debug", "[Config Page Step 4] Passed checkRight.");
 
 // Header
-Html::header(__('Direct Label Printer Configuration (CSRF Test)', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins");
-Toolbox::logInFile("debug", "[Config Page Step 3] Passed Html::header.");
+// Usar Html::header() para o título e breadcrumbs
+Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
+Toolbox::logInFile("debug", "[Config Page Step 4] Passed Html::header.");
 
 // --- Bloco POST ainda comentado ---
 // if (!empty($_POST)) { ... }
 
-// --- Busca de Dados DB (Já testada e funcionando) ---
-global $DB;
+// --- Busca de Dados DB (Funcionando) ---
+global $DB, $CFG_GLPI;
 $auth_table = 'glpi_plugin_directlabelprinter_auth';
 $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
-// Ajuste: Usar a forma correta de obter a URL base do GLPI
 $config_page_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/directlabelprinter/front/config.php";
 
 $current_auth = [];
@@ -42,28 +42,30 @@ try {
     $layouts_result = $DB->request(['FROM' => $layouts_table]);
     foreach ($layouts_result as $layout) {
         $layouts_from_db[] = $layout;
-        $layout_options[$layout['id_api']] = $layout['nome'];
-        if ($layout['padrao'] == 1) {
-            $default_layout_id_api = $layout['id_api'];
+        if (isset($layout['id_api']) && isset($layout['nome'])) {
+             $layout_options[$layout['id_api']] = $layout['nome'];
+        }
+        if (isset($layout['padrao']) && $layout['padrao'] == 1) {
+            $default_layout_id_api = $layout['id_api'] ?? null;
         }
     }
-    Toolbox::logInFile("debug", "[Config Page Step 3] DB data fetched successfully.");
+    Toolbox::logInFile("debug", "[Config Page Step 4] DB data fetched successfully.");
 
 } catch (\Exception $e) {
-    Toolbox::logInFile("error", "[Config Page Step 3] DB Error: " . $e->getMessage());
+    Toolbox::logInFile("error", "[Config Page Step 4] DB Error: " . $e->getMessage());
     Html::displayErrorAndDie("Erro ao aceder ao banco de dados: " . $e->getMessage());
 }
 // --- Fim da Busca de Dados DB ---
 
 
-// --- Reintroduzir Preparação de Dados para Twig e Geração CSRF ---
-Toolbox::logInFile("debug", "[Config Page Step 3] Preparing Twig data and generating CSRF token...");
-$csrf_token_name = 'plugin_directlabelprinter_config'; // Nome para o token
-$csrf_token_value = ''; // Inicializa vazio
+// --- Preparação de Dados para Twig e Geração CSRF (Funcionando) ---
+Toolbox::logInFile("debug", "[Config Page Step 4] Preparing Twig data and generating CSRF token...");
+$csrf_token_name = 'plugin_directlabelprinter_config';
+$csrf_token_value = '';
 
 try {
-    $csrf_token_value = Session::getNewCSRFToken($csrf_token_name); // Gera o token
-    Toolbox::logInFile("debug", "[Config Page Step 3] CSRF token generated successfully: " . $csrf_token_value); // Log do token gerado
+    $csrf_token_value = Session::getNewCSRFToken($csrf_token_name);
+    Toolbox::logInFile("debug", "[Config Page Step 4] CSRF token generated successfully: " . $csrf_token_value);
 
     $twig_data = [
         'plugin_name'           => 'directlabelprinter',
@@ -73,37 +75,39 @@ try {
         'layout_options'        => $layout_options,
         'default_layout_id_api' => $default_layout_id_api,
         'can_edit'              => Session::haveRight('config', UPDATE),
-        'csrf_token'            => $csrf_token_value // Usa o token gerado
+        'csrf_token'            => $csrf_token_value
     ];
-    Toolbox::logInFile("debug", "[Config Page Step 3] Twig data array prepared.");
+    Toolbox::logInFile("debug", "[Config Page Step 4] Twig data array prepared.");
 
 } catch (\Exception $e) {
-    // Capturar erros potenciais da geração do token CSRF (raro, mas possível)
-    Toolbox::logInFile("error", "[Config Page Step 3] Error preparing Twig data/CSRF: " . $e->getMessage());
+    Toolbox::logInFile("error", "[Config Page Step 4] Error preparing Twig data/CSRF: " . $e->getMessage());
     Html::displayErrorAndDie("Erro ao preparar dados da página: " . $e->getMessage());
 }
 // --- Fim da Preparação de Dados ---
 
 
-// --- Renderização Twig AINDA COMENTADA ---
-// $template_renderer = TemplateRenderer::getInstance();
-// try {
-//     echo $template_renderer->render('@directlabelprinter/config_page.html.twig', $twig_data);
-//     Toolbox::logInFile("debug", "[Config Page Step 3] Twig template rendered.");
-// } catch (\Exception $e) {
-//     Html::displayErrorAndDie("Erro ao renderizar template: " . $e->getMessage());
-// }
+// --- Reintroduzir Renderização Twig ---
+Toolbox::logInFile("debug", "[Config Page Step 4] Attempting to render Twig template...");
+$template_renderer = TemplateRenderer::getInstance(); // Obter instância do renderer
+try {
+    // Usar o namespace do plugin
+    echo $template_renderer->render('@directlabelprinter/config_page.html.twig', $twig_data);
+    Toolbox::logInFile("debug", "[Config Page Step 4] Twig template rendered successfully.");
+} catch (\Exception $e) {
+    Toolbox::logInFile("error", "[Config Page Step 4] Twig Rendering Error: " . $e->getMessage()); // Log específico
+    Html::displayErrorAndDie("Erro ao renderizar template: " . $e->getMessage());
+}
 // --- Fim Renderização Twig ---
 
-// Exibir uma Mensagem Simples
-echo "<h1>Teste da Página de Configuração - Passo 3 (CSRF Token)</h1>";
-echo "<p>Se você vê esta mensagem, a busca no DB e a geração do token CSRF funcionaram (verifique os logs).</p>";
-echo "<p>CSRF Token Gerado: " . htmlspecialchars($csrf_token_value, ENT_QUOTES, 'UTF-8') . "</p>"; // Mostra o token gerado na página
-Toolbox::logInFile("debug", "[Config Page Step 3] Displaying simple message.");
+// --- Remover Mensagem Simples ---
+// echo "<h1>Teste da Página de Configuração - Passo 3 (CSRF Token)</h1>";
+// echo "<p>Se você vê esta mensagem, a busca no DB e a geração do token CSRF funcionaram (verifique os logs).</p>";
+// echo "<p>CSRF Token Gerado: " . htmlspecialchars($csrf_token_value, ENT_QUOTES, 'UTF-8') . "</p>";
+// Toolbox::logInFile("debug", "[Config Page Step 3] Displaying simple message.");
 
 
 // Footer
 Html::footer();
-Toolbox::logInFile("debug", "[Config Page Step 3] Script finished.");
+Toolbox::logInFile("debug", "[Config Page Step 4] Script finished.");
 
 ?>
