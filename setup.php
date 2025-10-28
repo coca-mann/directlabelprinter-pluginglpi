@@ -46,6 +46,7 @@ use Glpi\Plugin\Hooks;
 use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import the new Config class with alias
 use Config as CoreConfig; // Import the core Config class
 use Plugin; // Import the Plugin class
+use Glpi\Toolbox\DbUtils; // Import DbUtils for database operations
 
 /**
  * Init hooks of the plugin.
@@ -122,7 +123,7 @@ function plugin_directlabelprinter_check_prerequisites(): bool
  */
 function plugin_directlabelprinter_check_config($verbose = false) {
     // Pode verificar se a URL da API está definida na tabela _auth, por exemplo
-    $dbu = new \Glpi\Toolbox\DbUtils();
+    $dbu = new DbUtils();
     $auth_data = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_auth', ['LIMIT' => 1]);
     if (!empty($auth_data) && !empty($auth_data[0]['api_url'])) {
         return true; // Configurado se a URL estiver salva
