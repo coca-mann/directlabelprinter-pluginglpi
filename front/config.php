@@ -3,6 +3,10 @@
 
 include ("../../../inc/includes.php"); // Inclui o GLPI Core
 
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
+
 // --- Namespaces Usados ---
 use Glpi\Toolbox\Sanitizer;
 use GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions;
@@ -247,7 +251,7 @@ Toolbox::logInFile("debug", "[Config Page GET] Token CSRF GERADO AGORA: " . subs
 Toolbox::logInFile("debug", "[Config Page GET] Nome do token CSRF: " . $csrf_token_name);
 
 // --- Construir Formulário Diretamente com PHP/HTML ---
-echo "<form name='config_form_directlabelprinter' action='$config_page_url' method='POST' class='glpi_form'>";
+echo "<form name='config_form_directlabelprinter' action='$config_page_url' method='POST' class='glpi_form' autocomplete='off'>";
 echo Html::hidden('_glpi_csrf_token', ['value' => $csrf_token_value]);
 Toolbox::logInFile("debug", "[Config Page GET] Campo hidden CSRF adicionado com valor: " . substr($csrf_token_value, 0, 20) . "...");
 
