@@ -116,21 +116,26 @@ function plugin_directlabelprinter_check_prerequisites(): bool
 }
 
 /**
- * Check configuration process
- * OPTIONAL
- *
- * @param bool $verbose Whether to display message on failure. Defaults to false.
+ * Check configuration process for plugin
+ * Can display a message only if failure and $verbose is true
+ * @param boolean $verbose Enable verbosity. Default to false
+ * @return boolean
  */
 function plugin_directlabelprinter_check_config($verbose = false) {
     // Pode verificar se a URL da API está definida na tabela _auth, por exemplo
-    $dbu = new DbUtils();
+    // Agora DbUtils será encontrado por causa do 'use' statement no topo do arquivo
+    $dbu = new DbUtils(); // <-- Linha 126 (aproximadamente) que causava o erro
     $auth_data = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_auth', ['LIMIT' => 1]);
+
+    // Verifica se há dados e se a api_url está definida (ajustado para verificar api_url)
     if (!empty($auth_data) && !empty($auth_data[0]['api_url'])) {
         return true; // Configurado se a URL estiver salva
     }
 
     if ($verbose) {
-        echo __('Plugin instalado, mas não configurado (URL da API não definida).', 'directlabelprinter');
+        // Exibe mensagem se não configurado e $verbose for true
+        echo __('Plugin instalado, mas não configurado (URL da API não definida ou conexão não testada).', 'directlabelprinter');
     }
-    return false; // Não configurado
+    // Retorna false indicando que o plugin não está pronto/configurado
+    return false;
 }
