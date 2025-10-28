@@ -14,8 +14,7 @@ use Config as CoreConfig; // Necessário para setConfigurationValues se ainda us
 Session::checkRight('config', UPDATE);
 
 // --- Variáveis Globais ---
-$app = \Slim\App::getInstance(); // Para obter o TemplateRenderer
-$twig = $app->getContainer()->get('view');
+$template_renderer = TemplateRenderer::getInstance();
 $dbu = new DbUtils();
 $auth_table = 'glpi_plugin_directlabelprinter_auth';
 $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
@@ -176,10 +175,11 @@ $twig_data = [
     'csrf_token'            => Session::getNewCSRFToken('plugin_directlabelprinter_config') // Gera um novo token para o form
 ];
 
-// Renderizar o template Twig (precisamos criar/adaptar este template)
+// Renderizar o template Twig
 try {
-    // Usar o renderer do container Slim/Twig
-    echo $twig->render('@directlabelprinter/config_page.html.twig', $twig_data);
+    // Usar o caminho direto do template
+    $template_path = Plugin::getWebDir('directlabelprinter', false) . '/templates/config_page.html.twig';
+    echo $template_renderer->render($template_path, $twig_data);
 } catch (\Exception $e) {
     // Lidar com erro de renderização do Twig
     echo "Erro ao renderizar template: " . $e->getMessage();
