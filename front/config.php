@@ -3,10 +3,17 @@
 
 include ("../../../inc/includes.php"); // Inclui o GLPI
 
+use Toolbox;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\Toolbox\Sanitizer;
 use GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions; // Para a função makeAuthenticatedApiRequest
 use Config as CoreConfig; // Necessário para setConfigurationValues se ainda usar algo
+
+
+Toolbox::logInFile("debug", "[Config Page GET] Script accessed. User ID: " . Session::getLoginUserID());
+Toolbox::logInFile("debug", "[Config Page GET] GET Params: " . print_r($_GET, true));
+Toolbox::logInFile("debug", "[Config Page GET] POST Params: " . print_r($_POST, true)); // Deve estar vazio
+Toolbox::logInFile("debug", "[Config Page GET] REQUEST Params: " . print_r($_REQUEST, true));
 
 // --- Verificação de Permissões ---
 // Usaremos 'config' -> UPDATE como permissão geral para esta página
