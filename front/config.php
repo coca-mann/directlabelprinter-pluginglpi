@@ -87,7 +87,20 @@ try {
 
 
 // --- Reintroduzir Renderização Twig ---
-Toolbox::logInFile("debug", "[Config Page Step 4] Attempting to render Twig template...");
+Toolbox::logInFile("debug", "[Config Page Step 4.1] Attempting to render SIMPLE STRING...");
+try {
+    // Tenta renderizar uma string Twig básica
+    echo $template_renderer->render(
+        '{% extends "@core/layout.html.twig" %}{% block content %}<h1>Teste Twig Simples</h1><p>Renderização básica funcionou.</p>{% endblock %}',
+        $twig_data // Passa os dados, embora não sejam usados pela string
+    );
+    Toolbox::logInFile("debug", "[Config Page Step 4.1] Simple string rendered successfully.");
+} catch (\Exception $e) {
+    Toolbox::logInFile("error", "[Config Page Step 4.1] Twig Simple String Rendering Error: " . $e->getMessage());
+    Html::displayErrorAndDie("Erro ao renderizar string Twig: " . $e->getMessage());
+}
+
+/* Toolbox::logInFile("debug", "[Config Page Step 4] Attempting to render Twig template...");
 $template_renderer = TemplateRenderer::getInstance(); // Obter instância do renderer
 try {
     // Usar o namespace do plugin
@@ -96,7 +109,7 @@ try {
 } catch (\Exception $e) {
     Toolbox::logInFile("error", "[Config Page Step 4] Twig Rendering Error: " . $e->getMessage()); // Log específico
     Html::displayErrorAndDie("Erro ao renderizar template: " . $e->getMessage());
-}
+} */
 // --- Fim Renderização Twig ---
 
 // --- Remover Mensagem Simples ---
