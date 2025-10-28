@@ -241,14 +241,15 @@ foreach ($layouts_from_db as $layout) {
 }
 
 // Gerar Token CSRF para o formulário
+Toolbox::logInFile("debug", "[Config Page GET] PREPARANDO para gerar token CSRF..."); // Log Antes
 $csrf_token_value = Session::getNewCSRFToken($csrf_token_name);
-Toolbox::logInFile("debug", "[Config Page GET] Token CSRF gerado: " . substr($csrf_token_value, 0, 20) . "... (primeiros 20 chars)");
+Toolbox::logInFile("debug", "[Config Page GET] Token CSRF GERADO AGORA: " . substr($csrf_token_value, 0, 20) . "..."); // Log Depois
 Toolbox::logInFile("debug", "[Config Page GET] Nome do token CSRF: " . $csrf_token_name);
 
 // --- Construir Formulário Diretamente com PHP/HTML ---
 echo "<form name='config_form_directlabelprinter' action='$config_page_url' method='POST' class='glpi_form'>";
 echo Html::hidden('_glpi_csrf_token', ['value' => $csrf_token_value]);
-Toolbox::logInFile("debug", "[Config Page GET] Campo hidden CSRF adicionado ao formulário com valor: " . substr($csrf_token_value, 0, 20) . "...");
+Toolbox::logInFile("debug", "[Config Page GET] Campo hidden CSRF adicionado com valor: " . substr($csrf_token_value, 0, 20) . "...");
 
 // --- Authentication Section ---
 echo "<div class='card card-flush shadow-sm m-6'>";
