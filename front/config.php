@@ -20,7 +20,7 @@ $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
 $config_page_url = Plugin::getWebDir('directlabelprinter', true) . "/front/config.php"; // URL para redirecionamentos
 
 // --- Lógica de Processamento POST ---
-if (!empty($_POST)) {
+/* if (!empty($_POST)) {
     // Verificar CSRF Token
     Session::checkCSRF('plugin_directlabelprinter_config', $_POST['_glpi_csrf_token']);
 
@@ -111,7 +111,7 @@ if (!empty($_POST)) {
             $default_found = false;
             foreach ($layouts_from_api as $layout_data) {
                  $is_default = ($layout_data['padrao'] ?? false) ? 1 : 0;
-                 $data_to_insert = [ /* ... mapear campos ... */ 'padrao' => $is_default ];
+                 $data_to_insert = [ 'padrao' => $is_default ];
                  if ($is_default) $default_found = true;
                  if (!empty($data_to_insert['id_api'])) {
                       $DB->insert($layouts_table, $data_to_insert);
@@ -148,7 +148,7 @@ if (!empty($_POST)) {
         }
          Html::redirect($config_page_url);
     }
-}
+} */
 
 // --- Lógica de Exibição GET ---
 Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
