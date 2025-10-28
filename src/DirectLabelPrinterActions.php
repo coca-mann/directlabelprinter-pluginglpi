@@ -218,7 +218,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
             if ($refresh_curl_error || $refresh_http_code != 200) {
                  $refresh_error_details = json_decode($refresh_response_body, true);
                  $refresh_error_message = $refresh_error_details['detail'] ?? "Erro ao renovar token ($refresh_http_code)";
-                 Toolbox::logError("Falha ao renovar token: " . $refresh_error_message);
+                 Toolbox::logInFile("error", "Falha ao renovar token: " . $refresh_error_message);
                  // Limpar tokens antigos pode ser uma opção aqui
                  // $DB->update($auth_table, ['access_token' => null, 'refresh_token' => null, 'access_token_expires' => null], ['id' => $auth_id]);
                 throw new \Exception(__('Falha ao renovar token de acesso. Tente "Testar Conexão" novamente.', 'directlabelprinter'));
@@ -226,7 +226,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
 
             $new_tokens = json_decode($refresh_response_body, true);
             if (empty($new_tokens['access'])) {
-                 Toolbox::logError("Resposta de renovação de token inválida.");
+                 Toolbox::logInFile("error", "Resposta de renovação de token inválida.");
                 throw new \Exception(__('Resposta de renovação de token inválida.', 'directlabelprinter'));
             }
 

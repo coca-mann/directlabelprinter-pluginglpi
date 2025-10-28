@@ -191,13 +191,13 @@ $twig_data = [
 
 // Renderizar o template Twig
 try {
-    // Usar o caminho direto do template
-    $template_path = Plugin::getWebDir('directlabelprinter', false) . '/templates/config_page.html.twig';
+    // Usar o caminho absoluto do template
+    $template_path = GLPI_ROOT . '/plugins/directlabelprinter/templates/config_page.html.twig';
     echo $template_renderer->render($template_path, $twig_data);
 } catch (\Exception $e) {
     // Lidar com erro de renderização do Twig
     echo "Erro ao renderizar template: " . $e->getMessage();
-    Toolbox::logError("Erro Twig: " . $e->getMessage());
+    Toolbox::logInFile("error", "Erro Twig: " . $e->getMessage());
 }
 
 Html::footer();
