@@ -47,6 +47,7 @@ use Glpi\Plugin\Hooks;
 use Config as CoreConfig; // Import the core Config class
 use Plugin; // Import the Plugin class
 use Toolbox; // Import Toolbox for database operations
+use Session;
 
 /**
  * Init hooks of the plugin.
@@ -59,6 +60,17 @@ function plugin_init_directlabelprinter() {
     $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
 
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
+
+    $plugin = new Plugin();
+    if (
+        $plugin->isInstalled('directlabelprinter')
+        && $plugin->isActivated('directlabelprinter')
+        // Usar permissão 'config' -> READ para ver a página de configuração
+        && Session::haveRight('config', READ)
+    ) {
+        // Associar o ícone da ferramenta à nossa página de configuração
+        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/config.php';
+    }
 
     // $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
     //    'js/directlabelprinter.js'
@@ -94,12 +106,7 @@ function plugin_version_directlabelprinter() {
             'glpi' => [
                 'min' => '11.0.0' // Ajuste conforme necessário
             ]
-        ],
-        // ---> ADICIONAR ESTA FUNÇÃO ANÔNIMA <---
-        // Define a URL acessada pelo ícone de chave inglesa
-        'get_config_page_url' => function() {
-            return Plugin::getWebDir('directlabelprinter', true) . "/front/config.php";
-        }
+        ]
     ];
 }
 
