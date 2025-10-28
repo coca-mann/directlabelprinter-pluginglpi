@@ -10,7 +10,7 @@ use Config as CoreConfig; // Necessário para setConfigurationValues se ainda us
 
 // --- Verificação de Permissões ---
 // Usaremos 'config' -> UPDATE como permissão geral para esta página
-Session::checkRight('config', UPDATE);
+// Session::checkRight('config', UPDATE);
 
 // --- Variáveis Globais ---
 $template_renderer = TemplateRenderer::getInstance();
