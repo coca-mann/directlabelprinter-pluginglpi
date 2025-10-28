@@ -85,7 +85,11 @@ if ($can_edit && !empty($_POST)) {
 
             // Salvar/Atualizar na tabela _auth
             $existing_result = $DB->request(['FROM' => $auth_table, 'LIMIT' => 1]);
-            $existing = $existing_result->fetch(); // Usar fetch() para obter a linha
+            $existing = [];
+            foreach ($existing_result as $row) {
+                $existing = $row;
+                break; // Pega apenas a primeira linha
+            }
             if (empty($existing)) {
                 $DB->insert($auth_table, $data_to_save);
             } else {
@@ -168,7 +172,11 @@ Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_S
 
 // Obter dados atuais das tabelas do plugin
 $current_auth_result = $DB->request(['FROM' => $auth_table, 'LIMIT' => 1]);
-$current_auth = $current_auth_result->fetch() ?? [];
+$current_auth = [];
+foreach ($current_auth_result as $row) {
+    $current_auth = $row;
+    break; // Pega apenas a primeira linha
+}
 
 $layouts_result = $DB->request(['FROM' => $layouts_table]);
 $layouts_from_db = []; foreach ($layouts_result as $layout) { $layouts_from_db[] = $layout; }
