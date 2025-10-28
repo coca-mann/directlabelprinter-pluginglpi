@@ -191,13 +191,15 @@ $twig_data = [
 
 // Renderizar o template Twig
 try {
-    // Usar o caminho absoluto do template
-    $template_path = GLPI_ROOT . '/plugins/directlabelprinter/templates/config_page.html.twig';
-    echo $template_renderer->render($template_path, $twig_data);
+    // Usar o namespace do plugin '@directlabelprinter' // <-- CORRETO
+    // O nome do ficheiro é relativo ao diretório 'templates' do plugin
+    echo $template_renderer->render('@directlabelprinter/config_page.html.twig', $twig_data);
 } catch (\Exception $e) {
     // Lidar com erro de renderização do Twig
-    echo "Erro ao renderizar template: " . $e->getMessage();
-    Toolbox::logInFile("error", "Erro Twig: " . $e->getMessage());
+    // Usar Html::displayErrorAndDie() para um erro mais integrado ao GLPI
+    Html::displayErrorAndDie("Erro ao renderizar template: " . $e->getMessage());
+    // O log pode ser útil também, mas displayErrorAndDie interrompe
+    // Toolbox::logInFile("error", "Erro Twig: " . $e->getMessage());
 }
 
 Html::footer();
