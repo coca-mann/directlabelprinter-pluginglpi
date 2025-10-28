@@ -69,7 +69,17 @@ function plugin_init_directlabelprinter() {
         && Session::haveRight('config', READ)
     ) {
         // Associar o ícone da ferramenta à nossa página de configuração
-        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = '/plugins/directlabelprinter/config';
+        if (Session::haveRight('config', READ)) {
+            $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
+                // 'tools' => 'NomeDaSuaClasseDeMenuSeTiver', // Alternativa: adicionar sob Ferramentas
+                'setup' => [ // Adiciona sob o menu 'Configuração'
+                    'title' => __('Direct Label Printer', 'directlabelprinter'), // Título do item de menu
+                    'page'  => 'plugins.directlabelprinter.config', // Nome da ROTA do Controller
+                    'icon'  => 'fas fa-print', // Ícone opcional (Font Awesome)
+                    // '_rank' => 50, // Ordem opcional no menu
+                ]
+            ];
+        }
     }
 
     // $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
