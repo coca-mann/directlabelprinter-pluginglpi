@@ -6,7 +6,6 @@ use CommonDBTM;
 use Html;
 use MassiveAction;
 use Session;
-use Glpi\Toolbox\DbUtils;
 use Toolbox;
 use DateTime;
 
@@ -155,7 +154,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      * @throws \Exception Em caso de erro de autenticação ou API
      */
     public static function makeAuthenticatedApiRequest(string $method, string $endpoint, ?array $payload = null): array {
-        global $DB; // Acesso global $DB
+                global $DB; // Acesso global $DB
 
         // 1. Obter configuração e dados de autenticação
         $plugin_config = \GlpiPlugin\Directlabelprinter\Config::getConfigValues();
@@ -165,15 +164,18 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
             throw new \Exception(__('URL da API não configurada.', 'directlabelprinter'));
         }
 
-        $dbu = new DbUtils();
         $auth_table = 'glpi_plugin_directlabelprinter_auth';
-        $auth_data = $dbu->getAllDataFromTable($auth_table, ['LIMIT' => 1]);
+        $auth_result = $DB->request([
+            'FROM' => $auth_table,
+            'LIMIT' => 1
+        ]);
+        $auth_data = $auth_result->current();
 
-        if (empty($auth_data) || empty($auth_data[0]['access_token']) || empty($auth_data[0]['refresh_token'])) {
+        if (empty($auth_data) || empty($auth_data['access_token']) || empty($auth_data['refresh_token'])) {
             throw new \Exception(__('Autenticação necessária. Use o "Testar Conexão" na configuração.', 'directlabelprinter'));
         }
 
-        $auth_info = $auth_data[0];
+        $auth_info = $auth_data;
         $access_token = $auth_info['access_token'];
         $refresh_token = $auth_info['refresh_token'];
         $expiry_str = $auth_info['access_token_expires'];

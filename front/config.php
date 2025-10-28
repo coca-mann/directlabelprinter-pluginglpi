@@ -4,7 +4,6 @@
 include ("../../../inc/includes.php"); // Inclui o GLPI
 
 use Glpi\Application\View\TemplateRenderer;
-use Glpi\Toolbox\DbUtils;
 use Glpi\Toolbox\Sanitizer;
 use GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions; // Para a função makeAuthenticatedApiRequest
 use Config as CoreConfig; // Necessário para setConfigurationValues se ainda usar algo
@@ -15,7 +14,7 @@ Session::checkRight('config', UPDATE);
 
 // --- Variáveis Globais ---
 $template_renderer = TemplateRenderer::getInstance();
-$dbu = new DbUtils();
+global $DB;
 $auth_table = 'glpi_plugin_directlabelprinter_auth';
 $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
 $config_page_url = Plugin::getWebDir('directlabelprinter', true) . "/front/config.php"; // URL para redirecionamentos
@@ -77,12 +76,16 @@ if (!empty($_POST)) {
             ];
 
             // Salvar/Atualizar na tabela _auth
-            $existing = $dbu->getAllDataFromTable($auth_table, ['LIMIT' => 1]);
-            global $DB;
+            $existing_result = $DB->request([
+                'FROM' => $auth_table,
+                'LIMIT' => 1
+            ]);
+            $existing = $existing_result->current();
+            
             if (empty($existing)) {
                 $DB->insert($auth_table, $data_to_save);
             } else {
-                $DB->update($auth_table, $data_to_save, ['id' => $existing[0]['id']]);
+                $DB->update($auth_table, $data_to_save, ['id' => $existing['id']]);
             }
 
             Session::addMessageAfterRedirect(__('Autenticação bem-sucedida! Tokens salvos.', 'directlabelprinter'), true, INFO);
@@ -151,8 +154,19 @@ if (!empty($_POST)) {
 Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
 
 // Obter dados atuais para exibir no formulário
-$current_auth = $dbu->getAllDataFromTable($auth_table, ['LIMIT' => 1])[0] ?? []; // Pega a primeira linha ou array vazio
-$layouts_from_db = $dbu->getAllDataFromTable($layouts_table);
+$current_auth_result = $DB->request([
+    'FROM' => $auth_table,
+    'LIMIT' => 1
+]);
+$current_auth = $current_auth_result->current() ?? []; // Pega a primeira linha ou array vazio
+
+$layouts_result = $DB->request([
+    'FROM' => $layouts_table
+]);
+$layouts_from_db = [];
+foreach ($layouts_result as $layout) {
+    $layouts_from_db[] = $layout;
+}
 
 $layout_options = [];
 $default_layout_id_api = null; // Usar o ID da API como valor
