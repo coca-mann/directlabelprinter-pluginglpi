@@ -89,6 +89,9 @@ try {
 // --- Reintroduzir Renderização Twig ---
 Toolbox::logInFile("debug", "[Config Page Step 4.1] Attempting to render SIMPLE STRING...");
 try {
+    // Inicializar o TemplateRenderer
+    $template_renderer = TemplateRenderer::getInstance();
+    
     // Tenta renderizar uma string Twig básica
     echo $template_renderer->render(
         '{% extends "@core/layout.html.twig" %}{% block content %}<h1>Teste Twig Simples</h1><p>Renderização básica funcionou.</p>{% endblock %}',
