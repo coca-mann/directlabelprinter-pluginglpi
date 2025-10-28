@@ -1,37 +1,84 @@
 <?php
 // plugins/directlabelprinter/front/config.php
 
-// 1. Incluir GLPI (Essencial)
 include ("../../../inc/includes.php");
 
-// Use Toolbox para log, Html para header/footer
 use Toolbox;
 use Html;
-use Session; // Ainda precisamos de Session para checkRight
+use Session;
+use Glpi\Application\View\TemplateRenderer; // Adicionar se for usar Twig depois
+use Config as CoreConfig; // Adicionar se for usar depois
 
-Toolbox::logInFile("debug", "[Config Page Minimal] Script accessed. User ID: " . Session::getLoginUserID());
+Toolbox::logInFile("debug", "[Config Page Step 2] Script accessed. User ID: " . Session::getLoginUserID());
 
-// 2. Verificar Permissão (Mínimo de Segurança)
-// Se isto causar 403, sabemos que é permissão. Se causar 400, é outra coisa.
-// Vamos manter descomentado por enquanto. Se ainda der 400, comente esta linha também.
+// Verificar Permissão
 Session::checkRight('config', UPDATE);
-Toolbox::logInFile("debug", "[Config Page Minimal] Passed checkRight.");
+Toolbox::logInFile("debug", "[Config Page Step 2] Passed checkRight.");
 
-// 3. Header Básico
-// Usar Html::header() mas sem o último parâmetro 'context' que pode não ser esperado aqui
-Html::header(__('Direct Label Printer Configuration (Minimal Test)', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins");
-Toolbox::logInFile("debug", "[Config Page Minimal] Passed Html::header.");
+// Header
+Html::header(__('Direct Label Printer Configuration (DB Test)', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins");
+Toolbox::logInFile("debug", "[Config Page Step 2] Passed Html::header.");
 
-// --- TODA A LÓGICA POST, BUSCA DB, TWIG REMOVIDA ---
+// --- Bloco POST ainda comentado ---
+// if (!empty($_POST)) { ... }
 
-// 4. Exibir uma Mensagem Simples
-echo "<h1>Teste da Página de Configuração</h1>";
-echo "<p>Se você vê esta mensagem, o script PHP básico executou.</p>";
-Toolbox::logInFile("debug", "[Config Page Minimal] Displaying simple message.");
+// --- Reintroduzir Busca de Dados DB ---
+global $DB; // Acesso ao DB
+$auth_table = 'glpi_plugin_directlabelprinter_auth';
+$layouts_table = 'glpi_plugin_directlabelprinter_layouts';
+$config_page_url = Plugin::getWebDir('directlabelprinter', true) . "/front/config.php"; // Manter para uso futuro
+
+Toolbox::logInFile("debug", "[Config Page Step 2] Attempting DB requests...");
+try {
+    // Obter dados atuais para exibir no formulário (mesmo que ainda não usemos)
+    $current_auth_result = $DB->request([
+        'FROM' => $auth_table,
+        'LIMIT' => 1
+    ]);
+    $current_auth = $current_auth_result->current() ?? [];
+    Toolbox::logInFile("debug", "[Config Page Step 2] Auth data fetched (or empty array).");
+
+    $layouts_result = $DB->request([
+        'FROM' => $layouts_table
+    ]);
+    $layouts_from_db = [];
+    foreach ($layouts_result as $layout) { // Iterar sobre o resultado
+        $layouts_from_db[] = $layout;
+    }
+    Toolbox::logInFile("debug", "[Config Page Step 2] Layouts data fetched (Count: " . count($layouts_from_db) . ").");
+
+    $layout_options = [];
+    $default_layout_id_api = null;
+    foreach ($layouts_from_db as $layout) {
+        $layout_options[$layout['id_api']] = $layout['nome'];
+        if ($layout['padrao'] == 1) {
+            $default_layout_id_api = $layout['id_api'];
+        }
+    }
+    Toolbox::logInFile("debug", "[Config Page Step 2] Layout options prepared.");
+
+} catch (\Exception $e) {
+    // Capturar erros potenciais do DB e exibir/logar
+    Toolbox::logInFile("error", "[Config Page Step 2] DB Error: " . $e->getMessage());
+    Html::displayErrorAndDie("Erro ao aceder ao banco de dados: " . $e->getMessage());
+}
+// --- Fim da Busca de Dados DB ---
 
 
-// 5. Footer Básico
+// --- Renderização Twig e Geração CSRF ainda comentadas ---
+// $twig_data = [ ... ];
+// try { echo $template_renderer->render(...); } catch { ... }
+
+// Exibir uma Mensagem Simples
+echo "<h1>Teste da Página de Configuração - Passo 2 (DB)</h1>";
+echo "<p>Se você vê esta mensagem, as buscas no banco de dados foram executadas (verifique os logs).</p>";
+echo "<pre>Auth Data: " . print_r($current_auth, true) . "</pre>"; // Mostrar dados obtidos
+echo "<pre>Layouts Count: " . count($layouts_from_db) . "</pre>";
+Toolbox::logInFile("debug", "[Config Page Step 2] Displaying simple message.");
+
+
+// Footer
 Html::footer();
-Toolbox::logInFile("debug", "[Config Page Minimal] Script finished.");
+Toolbox::logInFile("debug", "[Config Page Step 2] Script finished.");
 
 ?>
