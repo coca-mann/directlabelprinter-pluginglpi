@@ -38,7 +38,6 @@ function plugin_directlabelprinter_install() {
         // Query de criação original
         $query_auth = "CREATE TABLE `$auth_table_name` (
                         `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                        `api_url` VARCHAR(500) DEFAULT NULL COMMENT 'URL da API do DirectLabelPrinter',
                         `user` VARCHAR(255) DEFAULT NULL,
                         `password` VARCHAR(255) DEFAULT NULL COMMENT 'Consider encrypting/removing after first auth',
                         `access_token` TEXT DEFAULT NULL,
@@ -50,13 +49,7 @@ function plugin_directlabelprinter_install() {
                       COLLATE={$default_collation}";
         $DB->doQuery($query_auth) or die("Error creating table $auth_table_name");
     } else {
-        // --- Migration: Adicionar os campos se a tabela já existe ---
-        $migration->addField(
-            $auth_table_name,
-            'api_url',
-            'string', // Tipo de dado
-            ['null' => true, 'default' => null, 'length' => 500] // Opções (permite nulo, sem valor padrão)
-        );
+        // --- Migration: Adicionar o campo se a tabela já existe ---
         $migration->addField(
             $auth_table_name,
             'access_token_expires',
