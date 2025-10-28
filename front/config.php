@@ -46,7 +46,7 @@ if ($can_edit && !empty($_POST)) {
             // Salvar no DB...
             $expires_datetime = (new DateTime('+60 minutes'))->format('Y-m-d H:i:s');
             $data_to_save = [/*...*/];
-            $existing_result = $DB->request(['FROM'=>$auth_table,'LIMIT'=>1]); $existing = $existing_result->fetch();
+            $existing_result = $DB->request(['FROM'=>$auth_table,'LIMIT'=>1]); $existing = $existing_result->current();
             if (empty($existing)) {$DB->insert($auth_table, $data_to_save);} else {$DB->update($auth_table, $data_to_save, ['id'=>$existing['id']]);}
             Session::addMessageAfterRedirect(__('Autenticação bem-sucedida! Tokens salvos.', 'directlabelprinter'), false, INFO);
 
@@ -81,7 +81,7 @@ Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_S
 
 // Obter dados atuais das tabelas do plugin (IDÊNTICO)
 $current_auth_result = $DB->request(['FROM' => $auth_table, 'LIMIT' => 1]);
-$current_auth = $current_auth_result->fetch() ?? [];
+$current_auth = $current_auth_result->current() ?? [];
 $layouts_result = $DB->request(['FROM' => $layouts_table]);
 $layouts_from_db = []; foreach ($layouts_result as $layout) { $layouts_from_db[] = $layout; }
 $layout_options = []; $default_layout_id_api = null;
