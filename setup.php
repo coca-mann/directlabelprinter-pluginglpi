@@ -85,20 +85,23 @@ function plugin_init_directlabelprinter() {
  *      }
  * }
  */
-function plugin_version_directlabelprinter(): array
-{
+function plugin_version_directlabelprinter() {
     return [
-        'name'           => 'Direct Label Printer',
+        'name'           => __('Direct Label Printer', 'directlabelprinter'),
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
-        'author'         => '<a href="https://github.com/coca-mann">Juliano Ostroski\'</a>',
-        'license'        => '',
-        'homepage'       => 'https://github.com/coca-mann/directlabelprinter-pluginglpi',
+        'author'         => 'Seu Nome',
+        'license'        => 'GPLv2+',
+        'homepage'       => 'Sua Homepage',
         'requirements'   => [
             'glpi' => [
-                'min' => PLUGIN_DIRECTLABELPRINTER_MIN_GLPI_VERSION,
-                'max' => PLUGIN_DIRECTLABELPRINTER_MAX_GLPI_VERSION,
-            ],
+                'min' => '11.0.0' // Ajuste conforme necessário
+            ]
         ],
+        // ---> ADICIONAR ESTA FUNÇÃO ANÔNIMA <---
+        // Define a URL acessada pelo ícone de chave inglesa
+        'get_config_page_url' => function() {
+            return Plugin::getWebDir('directlabelprinter', true) . "/front/config.php";
+        }
     ];
 }
 
@@ -117,14 +120,16 @@ function plugin_directlabelprinter_check_prerequisites(): bool
  *
  * @param bool $verbose Whether to display message on failure. Defaults to false.
  */
-function plugin_directlabelprinter_check_config(bool $verbose = false): bool
-{
-    // Your configuration check
-    return true;
+function plugin_directlabelprinter_check_config($verbose = false) {
+    // Pode verificar se a URL da API está definida na tabela _auth, por exemplo
+    $dbu = new \Glpi\Toolbox\DbUtils();
+    $auth_data = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_auth', ['LIMIT' => 1]);
+    if (!empty($auth_data) && !empty($auth_data[0]['api_url'])) {
+        return true; // Configurado se a URL estiver salva
+    }
 
-    // Example:
-    // if ($verbose) {
-    //    echo __('Installed / not configured', 'directlabelprinter');
-    // }
-    // return false;
+    if ($verbose) {
+        echo __('Plugin instalado, mas não configurado (URL da API não definida).', 'directlabelprinter');
+    }
+    return false; // Não configurado
 }

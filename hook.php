@@ -3,9 +3,7 @@
 use Glpi\Plugin\Hooks;
 use Glpi\Application\View\TemplateRenderer;
 use Glpi\System\RequirementsManager;
-use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import your plugin's Config class
 use GlpiPlugin\Directlabelprinter\DirectLabelPrinterActions; // Vamos criar esta classe a seguir
-use Config as CoreConfig; // Import the core Config class
 
 // Import necessary classes for database operations
 use DBConnection;
@@ -85,12 +83,6 @@ function plugin_directlabelprinter_install() {
         // Migration steps for layouts table if needed in future versions
     }
 
-    // --- Set Default Config Values ---
-    // Use the core Config class static method to set values [cite: 4099-4100]
-    CoreConfig::setConfigurationValues(
-        'plugin:directlabelprinter', // Context for your plugin
-        PluginConfig::getDefaultValues() // Get defaults from your Config class
-    );
 
     // Execute any pending migrations (like adding fields in updates)
     $migration->executeMigration(); // [cite: 3239-3240, 3911]
@@ -118,10 +110,6 @@ function plugin_directlabelprinter_uninstall() {
         }
     }
 
-    // --- Remove Config Values ---
-    $config = new CoreConfig();
-    // Delete configuration values specific to the plugin context [cite: 4101]
-    $config->deleteByCriteria(['context' => 'plugin:directlabelprinter']);
 
     return true; // Indicate successful uninstallation [cite: 3877]
 }
