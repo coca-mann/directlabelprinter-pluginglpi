@@ -119,39 +119,20 @@ function plugin_directlabelprinter_check_prerequisites(): bool
  * @return boolean
  */
 function plugin_directlabelprinter_check_config($verbose = false) {
-    global $DB;
-    
-    // Verificar se a tabela existe e se há dados de configuração
-    $auth_table = 'glpi_plugin_directlabelprinter_auth';
-    
-    // Verificar se a tabela existe
-    if (!$DB->tableExists($auth_table)) {
-        if ($verbose) {
-            echo __('Tabela de autenticação não encontrada. Execute a instalação do plugin.', 'directlabelprinter');
-        }
-        return false;
-    }
-    
-    // Buscar dados de configuração
-    $result = $DB->request([
-        'FROM' => $auth_table,
-        'LIMIT' => 1
-    ]);
-    
-    $auth_data = [];
-    foreach ($result as $row) {
-        $auth_data[] = $row;
-    }
-    
-    // Verifica se há dados e se a api_url está definida
-    if (!empty($auth_data) && !empty($auth_data[0]['api_url'])) {
-        return true; // Configurado se a URL estiver salva
-    }
+    global $DB; // Acesso à variável global do banco de dados
 
-    if ($verbose) {
-        // Exibe mensagem se não configurado e $verbose for true
-        echo __('Plugin instalado, mas não configurado (URL da API não definida ou conexão não testada).', 'directlabelprinter');
+    // Apenas verificar se a tabela principal de autenticação existe.
+    // A configuração real (URL, etc.) será feita na página de configuração dedicada.
+    $auth_table = 'glpi_plugin_directlabelprinter_auth';
+
+    if ($DB->tableExists($auth_table)) {
+        // Se a tabela existe, consideramos o plugin "configurável" e permitimos a ativação.
+        return true;
+    } else {
+        // Se a tabela não existe, algo deu errado na instalação.
+        if ($verbose) {
+            echo __('Tabela de autenticação do plugin não encontrada. Reinstale o plugin.', 'directlabelprinter');
+        }
+        return false; // Impede a ativação se a estrutura básica não estiver presente.
     }
-    // Retorna false indicando que o plugin não está pronto/configurado
-    return false;
 }
