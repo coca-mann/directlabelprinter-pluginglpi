@@ -46,7 +46,7 @@ use Glpi\Plugin\Hooks;
 // use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import the new Config class with alias
 use Config as CoreConfig; // Import the core Config class
 use Plugin; // Import the Plugin class
-use Glpi\Toolbox\DbUtils; // Import DbUtils for database operations
+use Toolbox; // Import Toolbox for database operations
 
 /**
  * Init hooks of the plugin.
@@ -87,9 +87,9 @@ function plugin_version_directlabelprinter() {
     return [
         'name'           => __('Direct Label Printer', 'directlabelprinter'),
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
-        'author'         => 'Seu Nome',
+        'author'         => 'Juliano Ostroski',
         'license'        => 'GPLv2+',
-        'homepage'       => 'Sua Homepage',
+        'homepage'       => 'github.com/coca-mann',
         'requirements'   => [
             'glpi' => [
                 'min' => '11.0.0' // Ajuste conforme necessário
@@ -119,12 +119,31 @@ function plugin_directlabelprinter_check_prerequisites(): bool
  * @return boolean
  */
 function plugin_directlabelprinter_check_config($verbose = false) {
-    // Pode verificar se a URL da API está definida na tabela _auth, por exemplo
-    // Agora DbUtils será encontrado por causa do 'use' statement no topo do arquivo
-    $dbu = new DbUtils(); // <-- Linha 126 (aproximadamente) que causava o erro
-    $auth_data = $dbu->getAllDataFromTable('glpi_plugin_directlabelprinter_auth', ['LIMIT' => 1]);
-
-    // Verifica se há dados e se a api_url está definida (ajustado para verificar api_url)
+    global $DB;
+    
+    // Verificar se a tabela existe e se há dados de configuração
+    $auth_table = 'glpi_plugin_directlabelprinter_auth';
+    
+    // Verificar se a tabela existe
+    if (!$DB->tableExists($auth_table)) {
+        if ($verbose) {
+            echo __('Tabela de autenticação não encontrada. Execute a instalação do plugin.', 'directlabelprinter');
+        }
+        return false;
+    }
+    
+    // Buscar dados de configuração
+    $result = $DB->request([
+        'FROM' => $auth_table,
+        'LIMIT' => 1
+    ]);
+    
+    $auth_data = [];
+    foreach ($result as $row) {
+        $auth_data[] = $row;
+    }
+    
+    // Verifica se há dados e se a api_url está definida
     if (!empty($auth_data) && !empty($auth_data[0]['api_url'])) {
         return true; // Configurado se a URL estiver salva
     }
