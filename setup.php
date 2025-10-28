@@ -69,7 +69,7 @@ function plugin_init_directlabelprinter() {
         && Session::haveRight('config', READ)
     ) {
         // Associar o ícone da ferramenta à nossa página de configuração
-        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'config';
+        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = '/plugins/directlabelprinter/config';
     }
 
     // $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
