@@ -151,7 +151,7 @@ $config_page_url = Plugin::getWebDir('directlabelprinter', true) . "/front/confi
 } */
 
 // --- Lógica de Exibição GET ---
-Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
+// Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
 
 // Obter dados atuais para exibir no formulário
 $current_auth_result = $DB->request([
