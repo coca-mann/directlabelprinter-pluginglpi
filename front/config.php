@@ -10,16 +10,15 @@ use Glpi\Application\View\TemplateRenderer;
 use Config as CoreConfig;
 use Plugin;
 
-Toolbox::logInFile("debug", "[Config Page Step 4] Script accessed. User ID: " . Session::getLoginUserID());
+Toolbox::logInFile("debug", "[Config Page Hybrid] Script accessed. User ID: " . Session::getLoginUserID());
 
 // Verificar Permissão
 Session::checkRight('config', UPDATE);
-Toolbox::logInFile("debug", "[Config Page Step 4] Passed checkRight.");
+Toolbox::logInFile("debug", "[Config Page Hybrid] Passed checkRight.");
 
-// Header
-// Usar Html::header() para o título e breadcrumbs
+// Header Padrão GLPI
 Html::header(__('Direct Label Printer Configuration', 'directlabelprinter'), $_SERVER['PHP_SELF'], "config", "plugins", __('Direct Label Printer', 'directlabelprinter'));
-Toolbox::logInFile("debug", "[Config Page Step 4] Passed Html::header.");
+Toolbox::logInFile("debug", "[Config Page Hybrid] Passed Html::header.");
 
 // --- Bloco POST ainda comentado ---
 // if (!empty($_POST)) { ... }
@@ -29,16 +28,14 @@ global $DB, $CFG_GLPI;
 $auth_table = 'glpi_plugin_directlabelprinter_auth';
 $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
 $config_page_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/directlabelprinter/front/config.php";
-
 $current_auth = [];
 $layouts_from_db = [];
 $layout_options = [];
 $default_layout_id_api = null;
-
 try {
+    // ... (código de busca DB existente) ...
     $current_auth_result = $DB->request(['FROM' => $auth_table, 'LIMIT' => 1]);
     $current_auth = $current_auth_result->current() ?? [];
-
     $layouts_result = $DB->request(['FROM' => $layouts_table]);
     foreach ($layouts_result as $layout) {
         $layouts_from_db[] = $layout;
@@ -49,86 +46,49 @@ try {
             $default_layout_id_api = $layout['id_api'] ?? null;
         }
     }
-    Toolbox::logInFile("debug", "[Config Page Step 4] DB data fetched successfully.");
-
-} catch (\Exception $e) {
-    Toolbox::logInFile("error", "[Config Page Step 4] DB Error: " . $e->getMessage());
-    Html::displayErrorAndDie("Erro ao aceder ao banco de dados: " . $e->getMessage());
-}
-// --- Fim da Busca de Dados DB ---
-
+    Toolbox::logInFile("debug", "[Config Page Hybrid] DB data fetched successfully.");
+} catch (\Exception $e) { /* ... tratamento de erro DB ... */ }
 
 // --- Preparação de Dados para Twig e Geração CSRF (Funcionando) ---
-Toolbox::logInFile("debug", "[Config Page Step 4] Preparing Twig data and generating CSRF token...");
 $csrf_token_name = 'plugin_directlabelprinter_config';
 $csrf_token_value = '';
-
+$twig_data = [];
 try {
     $csrf_token_value = Session::getNewCSRFToken($csrf_token_name);
-    Toolbox::logInFile("debug", "[Config Page Step 4] CSRF token generated successfully: " . $csrf_token_value);
-
     $twig_data = [
         'plugin_name'           => 'directlabelprinter',
-        'config_page_url'       => $config_page_url,
+        'config_page_url'       => $config_page_url, // URL para action do form
         'current_auth'          => $current_auth,
         'layouts'               => $layouts_from_db,
         'layout_options'        => $layout_options,
         'default_layout_id_api' => $default_layout_id_api,
         'can_edit'              => Session::haveRight('config', UPDATE),
-        'csrf_token'            => $csrf_token_value
+        'csrf_token'            => $csrf_token_value // Passa o token para o template
     ];
-    Toolbox::logInFile("debug", "[Config Page Step 4] Twig data array prepared.");
-
-} catch (\Exception $e) {
-    Toolbox::logInFile("error", "[Config Page Step 4] Error preparing Twig data/CSRF: " . $e->getMessage());
-    Html::displayErrorAndDie("Erro ao preparar dados da página: " . $e->getMessage());
-}
-// --- Fim da Preparação de Dados ---
+    Toolbox::logInFile("debug", "[Config Page Hybrid] Twig data array prepared.");
+} catch (\Exception $e) { /* ... tratamento de erro CSRF ... */ }
 
 
-// --- Reintroduzir Renderização Twig ---
-Toolbox::logInFile("debug", "[Config Page Test 1.1 No Layout] Attempting to get TemplateRenderer instance...");
+// --- Renderizar APENAS o formulário Twig ---
+Toolbox::logInFile("debug", "[Config Page Hybrid] Attempting to render Twig FORM template...");
 $template_renderer = TemplateRenderer::getInstance();
-
 if ($template_renderer === null) {
-    Toolbox::logInFile("error", "[Config Page Test 1.1 No Layout] Failed to get TemplateRenderer instance!");
-    Html::displayErrorAndDie("Erro crítico: Não foi possível obter o motor de templates.");
+     Html::displayErrorAndDie("Erro crítico: Não foi possível obter o motor de templates.");
 } else {
-    Toolbox::logInFile("debug", "[Config Page Test 1.1 No Layout] Got instance. Attempting to render VERY SIMPLE STRING...");
     try {
-        // Tenta renderizar apenas HTML básico, sem herança
-        echo $template_renderer->render(
-            '<h1>Teste Twig Sem Layout</h1><p>Renderização muito básica funcionou.</p>',
-            [] // Passa array vazio
-        );
-        Toolbox::logInFile("debug", "[Config Page Test 1.1 No Layout] Very simple string rendered successfully.");
+        // Usa um NOVO template que contém APENAS o <form>...</form>
+        echo $template_renderer->render('@directlabelprinter/config_form_content.html.twig', $twig_data);
+        Toolbox::logInFile("debug", "[Config Page Hybrid] Twig form template rendered successfully.");
     } catch (\Exception $e) {
-        Toolbox::logInFile("error", "[Config Page Test 1.1 No Layout] Twig Very Simple String Rendering Error: " . $e->getMessage());
-        Html::displayErrorAndDie("Erro ao renderizar string Twig simples: " . $e->getMessage());
+        Toolbox::logInFile("error", "[Config Page Hybrid] Twig Form Rendering Error: " . $e->getMessage());
+        Html::displayErrorAndDie("Erro ao renderizar template do formulário: " . $e->getMessage());
     }
 }
-
-/* Toolbox::logInFile("debug", "[Config Page Step 4] Attempting to render Twig template...");
-$template_renderer = TemplateRenderer::getInstance(); // Obter instância do renderer
-try {
-    // Usar o namespace do plugin
-    echo $template_renderer->render('@directlabelprinter/config_page.html.twig', $twig_data);
-    Toolbox::logInFile("debug", "[Config Page Step 4] Twig template rendered successfully.");
-} catch (\Exception $e) {
-    Toolbox::logInFile("error", "[Config Page Step 4] Twig Rendering Error: " . $e->getMessage()); // Log específico
-    Html::displayErrorAndDie("Erro ao renderizar template: " . $e->getMessage());
-} */
 // --- Fim Renderização Twig ---
 
-// --- Remover Mensagem Simples ---
-// echo "<h1>Teste da Página de Configuração - Passo 3 (CSRF Token)</h1>";
-// echo "<p>Se você vê esta mensagem, a busca no DB e a geração do token CSRF funcionaram (verifique os logs).</p>";
-// echo "<p>CSRF Token Gerado: " . htmlspecialchars($csrf_token_value, ENT_QUOTES, 'UTF-8') . "</p>";
-// Toolbox::logInFile("debug", "[Config Page Step 3] Displaying simple message.");
 
-
-// Footer
+// Footer Padrão GLPI
 Html::footer();
-Toolbox::logInFile("debug", "[Config Page Step 4] Script finished.");
+Toolbox::logInFile("debug", "[Config Page Hybrid] Script finished.");
 
 ?>
