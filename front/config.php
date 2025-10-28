@@ -87,20 +87,27 @@ try {
 
 
 // --- Reintroduzir Renderização Twig ---
-Toolbox::logInFile("debug", "[Config Page Step 4.1] Attempting to render SIMPLE STRING...");
-try {
-    // Inicializar o TemplateRenderer
-    $template_renderer = TemplateRenderer::getInstance();
-    
-    // Tenta renderizar uma string Twig básica
-    echo $template_renderer->render(
-        '{% extends "@core/layout.html.twig" %}{% block content %}<h1>Teste Twig Simples</h1><p>Renderização básica funcionou.</p>{% endblock %}',
-        $twig_data // Passa os dados, embora não sejam usados pela string
-    );
-    Toolbox::logInFile("debug", "[Config Page Step 4.1] Simple string rendered successfully.");
-} catch (\Exception $e) {
-    Toolbox::logInFile("error", "[Config Page Step 4.1] Twig Simple String Rendering Error: " . $e->getMessage());
-    Html::displayErrorAndDie("Erro ao renderizar string Twig: " . $e->getMessage());
+Toolbox::logInFile("debug", "[Config Page Test 1 Corrected] Attempting to get TemplateRenderer instance...");
+// ---> OBTER A INSTÂNCIA DO RENDERER <---
+$template_renderer = TemplateRenderer::getInstance(); // Esta linha estava faltando ou comentada
+
+if ($template_renderer === null) {
+    Toolbox::logInFile("error", "[Config Page Test 1 Corrected] Failed to get TemplateRenderer instance!");
+    Html::displayErrorAndDie("Erro crítico: Não foi possível obter o motor de templates.");
+} else {
+    Toolbox::logInFile("debug", "[Config Page Test 1 Corrected] Got TemplateRenderer instance. Attempting to render SIMPLE STRING...");
+    try {
+        // Tenta renderizar uma string Twig básica
+        // Passar um array vazio para os dados, pois não são usados aqui
+        echo $template_renderer->render(
+            '{% extends "@core/layout.html.twig" %}{% block content %}<h1>Teste Twig Simples</h1><p>Renderização básica funcionou.</p>{% endblock %}',
+            [] // Passa array vazio
+        );
+        Toolbox::logInFile("debug", "[Config Page Test 1 Corrected] Simple string rendered successfully.");
+    } catch (\Exception $e) {
+        Toolbox::logInFile("error", "[Config Page Test 1 Corrected] Twig Simple String Rendering Error: " . $e->getMessage());
+        Html::displayErrorAndDie("Erro ao renderizar string Twig: " . $e->getMessage());
+    }
 }
 
 /* Toolbox::logInFile("debug", "[Config Page Step 4] Attempting to render Twig template...");
