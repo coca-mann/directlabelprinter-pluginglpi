@@ -5,28 +5,23 @@ include ("../../../inc/includes.php");
 
 // Importar a classe de configuração
 use GlpiPlugin\Directlabelprinter\Config;
+use Html;
+use Session;
 
 // Instanciar o objeto de configuração
 $config_item = new Config();
-$config_id = Config::getOrCreateDefaultConfig(); // Garante que ID 1 exista
+// Garante que ID 1 exista e obtém o ID
+$config_id = Config::getOrCreateDefaultConfig(); 
 
-if (isset($_POST['update_defaults']) || isset($_POST['test_connection']) || isset($_POST['fetch_layouts'])) {
-    // Verificar CSRF (CommonDBTM::check() faz isso, mas podemos ser explícitos se necessário)
-    // $config_item->check($_POST['id'], 'update', $_POST); // Verifica permissão e CSRF
-
-    // O CommonDBTM::check() pode ser complexo. Vamos verificar permissão e CSRF manualmente.
-    Session::checkLoginUser();
-    if (Session::haveRight(Config::$rightname, UPDATE)) {
-        // Validar CSRF token
-        Session::checkCSRF($config_item->getCsrfTokenName('config'), $_POST['_glpi_csrf_token']);
-
-        // O CommonDBTM espera que o ID esteja em $_POST['id']
-        $_POST['id'] = $config_id;
-        
-        // Chamar o método de atualização do CommonDBTM, que por sua vez
-        // chamará o nosso hook post_update() dentro da classe Config
-        $config_item->update($_POST);
-    }
+if (!empty($_POST)) {
+    // Verificar Permissão
+    $config_item->check($config_id, 'update', $_POST); // Verifica permissão E CSRF
+    
+    // O CommonDBTM::update() irá:
+    // 1. Preencher $config_item->input
+    // 2. Chamar $config_item->post_update()
+    // 3. (Opcional) Fazer o update DB padrão (que não fazemos)
+    $config_item->update($_POST);
     
     // Redirecionar de volta para o formulário
     Html::redirect($config_item->getFormURL(['id' => $config_id]));
@@ -38,6 +33,6 @@ if (isset($_POST['update_defaults']) || isset($_POST['test_connection']) || isse
     // O método display() irá carregar o item (ID 1) e depois chamar showForm()
     $config_item->display(['id' => $config_id]);
     
-    // Html::footer() é chamado dentro de showForm()
+    // Html::footer() é chamado dentro do nosso showForm() agora
 }
 ?>

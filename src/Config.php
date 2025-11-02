@@ -7,57 +7,50 @@ use CommonDBTM;
 use Html;
 use Session;
 use Toolbox;
-use Plugin;
+use Plugin; // Ainda pode ser necessário para outras coisas
 use DateTime;
 use Glpi\Toolbox\Sanitizer;
 
 class Config extends CommonDBTM
 {
-    // Usar 'config' como direito (o utilizador deve ter permissão de Configuração para aceder)
-    static $rightname = 'config';
+    static $rightname = 'config'; // Permissão necessária
 
-    // Define a tabela que esta classe irá gerir
-    static function getTable($classname = null)
-    {
+    static function getTable($classname = null) {
         return 'glpi_plugin_directlabelprinter_auth';
     }
 
-    // Define o nome que aparece no menu
-    static function getTypeName($nb = 0)
-    {
+    static function getTypeName($nb = 0) {
         return __('Direct Label Printer', 'directlabelprinter');
     }
 
     /**
      * Define como este item aparece no menu (hook 'menu_toadd')
      */
-    static function getMenuContent()
-    {
-        // Só temos 1 item de config, ID 1. Link direto para o formulário desse item.
+    static function getMenuContent() {
+        // Garante que a linha ID 1 exista
         $config_id = self::getOrCreateDefaultConfig();
         
         return [
             'title' => self::getTypeName(),
-            'page'  => self::getFormURL(['id' => $config_id]), // Aponta para front/config.form.php?id=1
+            'page'  => self::getFormURL(['id' => $config_id]), // Aponta para o formulário
             'icon'  => 'fas fa-print',
-            // '_rank' => 50,
         ];
     }
 
     /**
-     * Garante que a linha de configuração (ID=1) exista
+     * Garante que a linha de configuração (ID 1) exista
      */
-    static function getOrCreateDefaultConfig()
-    {
+    static function getOrCreateDefaultConfig() {
         global $DB;
         $table = self::getTable();
+        // Usar $DB->request() e ->current()
         $auth_data = $DB->request(['FROM' => $table, 'LIMIT' => 1])->current();
 
         if (empty($auth_data)) {
-            // Cria a linha de configuração placeholder se não existir
+            // Criar linha placeholder
             $DB->insert($table, [
-                'id' => 1, // Força o ID 1
-                'user' => 'default' // Placeholder
+                'id' => 1, // Força ID 1
+                'user' => 'default'
             ]);
             return 1;
         }
@@ -65,31 +58,32 @@ class Config extends CommonDBTM
     }
 
     /**
-     * Sobrescreve o URL do formulário (padrão é front/commondbtm.form.php)
+     * Sobrescreve o URL do formulário (sem Plugin::getWebDir)
      */
     static function getFormURL($params = []) {
-         return Plugin::getWebDir('directlabelprinter', true) . "/front/config.form.php" . Html::paramsToString($params);
+         global $CFG_GLPI; // Aceder à config global
+         $url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/directlabelprinter/front/config.form.php";
+         return $url . Html::paramsToString($params);
     }
     
     /**
-     * Sobrescreve o URL da lista (padrão é front/commondbtm.php)
+     * Sobrescreve o URL da lista (sem Plugin::getWebDir)
      */
     static function getSearchURL($full = false) {
-         return Plugin::getWebDir('directlabelprinter', true) . "/front/config.php";
+         global $CFG_GLPI; // Aceder à config global
+         $url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/directlabelprinter/front/config.php";
+         // Parâmetro $full é ignorado aqui, mas mantido pela assinatura
+         return $url;
     }
 
     /**
      * Exibe o formulário de configuração (sem Twig)
      */
-    public function showForm($ID, $options = [])
-    {
-        global $CFG_GLPI;
+    public function showForm($ID, $options = []) {
+        global $DB, $CFG_GLPI;
+        $this->initForm($ID, $options); // Carrega os dados de $this->fields
 
-        // ID será sempre 1 (ou o ID da nossa config)
-        $this->initForm($ID, $options);
-
-        // Obter layouts para o dropdown
-        global $DB;
+        // Obter layouts
         $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
         $layouts_result = $DB->request(['FROM' => $layouts_table]);
         $layouts_from_db = []; foreach ($layouts_result as $layout) { $layouts_from_db[] = $layout; }
@@ -99,13 +93,14 @@ class Config extends CommonDBTM
             if (isset($layout['padrao']) && $layout['padrao'] == 1) $default_layout_id_api = $layout['id_api'] ?? null;
         }
 
-        // Formulário aponta para config.form.php (padrão do CommonDBTM)
+        // Formulário aponta para o URL correto
         echo "<form name='config_form_directlabelprinter' action='" . self::getFormURL() . "' method='POST' class='glpi_form' autocomplete='off'>";
-        // O CommonDBTM::showFormHeader() ou initForm() pode já gerar o token,
-        // mas vamos garantir que ele está aqui com o nome correto para o POST
-        // Usar o token CSRF padrão gerado pelo GLPI para este formulário
-        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken($this->getCsrfTokenName('config'))]);
-        echo Html::hidden('id', ['value' => $this->fields['id']]); // Envia o ID para a atualização
+        
+        // Gerar Token CSRF
+        // Usar o método da classe base CommonDBTM para obter o nome do token
+        $csrf_token_name = $this->getCsrfTokenName('config');
+        echo Html::hidden('_glpi_csrf_token', ['value' => Session::getNewCSRFToken($csrf_token_name)]);
+        echo Html::hidden('id', ['value' => $this->fields['id']]);
 
         // --- Authentication Section ---
         echo "<div class='card card-flush shadow-sm m-6'>";
@@ -119,7 +114,6 @@ class Config extends CommonDBTM
         echo "          <tr><td>" . __('Password', 'directlabelprinter') . "</td>";
         echo "              <td>" . Html::input('api_password', ['value' => '', 'type' => 'password']) . "</td></tr>";
         echo "          <tr><td></td><td>";
-        // Botão de Teste agora é um botão de submit com nome 'test_connection'
         echo "              <button type='submit' name='test_connection' value='1' class='btn btn-secondary btn-sm'>" . __('Test Connection', 'directlabelprinter') . "</button>";
         echo "          </td></tr>";
         if (!empty($this->fields['access_token'])) {
@@ -135,7 +129,6 @@ class Config extends CommonDBTM
         echo "<div class='card card-flush shadow-sm m-6'>";
         echo "  <div class='card-header'><h3 class='card-title fw-bold'>" . __('Layouts', 'directlabelprinter') . "</h3></div>";
         echo "  <div class='card-body'>";
-        // Botão Fetch agora é um botão de submit com nome 'fetch_layouts'
         echo "      <button type='submit' name='fetch_layouts' value='1' class='btn btn-secondary btn-sm'>" . __('Fetch Layouts', 'directlabelprinter') . "</button>";
         echo "      <div class='mt-4'>";
         echo            __('Default Layout', 'directlabelprinter') . "&nbsp;";
@@ -144,74 +137,70 @@ class Config extends CommonDBTM
 
         echo "      <h4 class='mt-5'>" . __('Layout Details', 'directlabelprinter') . "</h4>";
         if (!empty($layouts_from_db)) {
-            // ... (Tabela HTML dos layouts, como no ficheiro anterior) ...
+            // ... (Tabela HTML dos layouts) ...
         } else {
             echo "  <p>" . __('No layouts fetched yet.', 'directlabelprinter') . "</p>";
         }
         echo "  </div>";
         echo "  <div class='card-footer d-flex justify-content-end py-6 px-9'>";
-        // O botão Salvar agora é o botão 'update' padrão do CommonDBTM
-        echo "      <button type='submit' name='update_defaults' value='" . _x('button', 'Save') . "' class='btn btn-primary'>";
+        // Nome 'update' é o padrão que o CommonDBTM procura
+        echo "      <button type='submit' name='update' value='" . _x('button', 'Save') . "' class='btn btn-primary'>";
         echo "          <i class='ti ti-device-floppy me-2'></i> " . _x('button', 'Save');
         echo "      </button>";
         echo "  </div>";
         echo "</div>";
 
         echo "</form>";
-        Html::footer();
+        Html::footer(); // CommonDBTM::showForm não chama Html::footer()
         return true;
     }
 
     /**
-     * Processa a lógica POST personalizada antes da atualização padrão do CommonDBTM
+     * Processa a lógica POST personalizada antes da atualização padrão
      */
     function post_update()
     {
         global $DB;
-        $input = $this->input;
+        $input = $this->input; // $this->input é preenchido pelo CommonDBTM::update()
         $auth_table = self::getTable();
         $layouts_table = 'glpi_plugin_directlabelprinter_layouts';
+        
+        // Flag para saber se já tratamos a ação
+        $action_done = false;
 
         // --- AÇÃO: Testar Conexão ---
         if (isset($input['test_connection'])) {
             Toolbox::logInFile("debug", "[Config Class] Test Connection POST received.");
             try {
-                $api_url = rtrim($input['api_url'], '/');
-                $username = $input['api_user'];
-                $password = $input['api_password'];
+                // ... (Lógica cURL para /api/auth/token/) ...
+                $api_url = rtrim($input['api_url'], '/'); $username = $input['api_user']; $password = $input['api_password'];
                 if (empty($api_url) || empty($username) || empty($password)) throw new \Exception(/*...*/);
                 $token_endpoint = $api_url . '/api/auth/token/';
-                // cURL...
                 $ch = curl_init(/*...*/); /*...*/ $api_response_body = curl_exec($ch); /*...*/ curl_close($ch);
                 if ($curl_error || $http_code != 200) throw new \Exception(/*...*/);
                 $tokens = json_decode($api_response_body, true); if (empty($tokens['access'])) throw new \Exception(/*...*/);
                 
                 $expires_datetime = (new DateTime('+60 minutes'))->format('Y-m-d H:i:s');
-                // Preparar dados para salvar
                 $data_to_save = [
                     'id'                   => $this->fields['id'], // Manter o ID
-                    'user'                 => $username,
-                    'api_url'              => $api_url,
-                    'access_token'         => $tokens['access'],
-                    'refresh_token'        => $tokens['refresh'],
+                    'user'                 => $username, 'api_url' => $api_url,
+                    'access_token'         => $tokens['access'], 'refresh_token' => $tokens['refresh'],
                     'access_token_expires' => $expires_datetime
                 ];
-                // Atualiza a linha de config
-                $this->update($data_to_save);
+                // Atualiza a linha de config (usando o método da classe base)
+                $this->update($data_to_save); 
                 Session::addMessageAfterRedirect(__('Autenticação bem-sucedida! Tokens salvos.', 'directlabelprinter'), false, INFO);
-
             } catch (\Exception $e) {
                 Session::addMessageAfterRedirect(__('Erro na conexão: ', 'directlabelprinter') . $e->getMessage(), true, ERROR);
             }
-            // Não continua para o 'update_defaults'
-            return;
+            $action_done = true;
         }
 
         // --- AÇÃO: Buscar Layouts ---
         if (isset($input['fetch_layouts'])) {
              Toolbox::logInFile("debug", "[Config Class] Fetch Layouts POST received.");
              try {
-                if (!class_exists(DirectLabelPrinterActions::class) || !method_exists(DirectLabelPrinterActions::class, 'makeAuthenticatedApiRequest')) throw new \Exception(/*...*/);
+                if (!class_exists(DirectLabelPrinterActions::class) /*...*/) throw new \Exception(/*...*/);
                 $layouts_from_api = DirectLabelPrinterActions::makeAuthenticatedApiRequest('GET', '/api/layouts/');
                 if (!is_array($layouts_from_api)) throw new \Exception(/*...*/);
                 $DB->query("TRUNCATE TABLE `$layouts_table`");
@@ -220,10 +209,13 @@ class Config extends CommonDBTM
              } catch (\Exception $e) {
                 Session::addMessageAfterRedirect(__('Erro ao buscar layouts: ', 'directlabelprinter') . $e->getMessage(), true, ERROR);
              }
-             return; // Não continua
+             $action_done = true;
         }
 
         // --- AÇÃO: Salvar (Padrão) ---
+        // Renomear o botão Salvar no Twig para 'update' (padrão do CommonDBTM)
+        // O CommonDBTM::update() trata o 'update' por padrão
+        // Mas o nosso botão chama-se 'update_defaults'
         if (isset($input['update_defaults'])) {
             Toolbox::logInFile("debug", "[Config Class] Update Defaults POST received.");
             try {
@@ -237,10 +229,12 @@ class Config extends CommonDBTM
             } catch (\Exception $e) {
                 Session::addMessageAfterRedirect(__('Erro ao atualizar layout padrão: ', 'directlabelprinter') . $e->getMessage(), true, ERROR);
             }
-            // Deixar o CommonDBTM fazer o update padrão (embora não tenhamos campos padrão para salvar)
-            // ou apenas retornar.
-            // parent::post_update(); // Opcional
-            return;
+            $action_done = true;
+        }
+        
+        // Se nenhuma ação customizada foi feita, deixa o CommonDBTM tentar
+        if (!$action_done) {
+            parent::post_update();
         }
     }
 }

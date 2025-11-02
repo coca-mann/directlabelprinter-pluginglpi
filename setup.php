@@ -58,13 +58,17 @@ function plugin_init_directlabelprinter() {
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
     $plugin = new Plugin();
-    if ($plugin->isInstalled('directlabelprinter') && $plugin->isActivated('directlabelprinter')) {
-        if (Session::haveRight('config', READ)) {
-            $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-                'setup' => Config::class // <-- APONTAR PARA A CLASSE CONFIG
-            ];
-        }
+    if (
+        $plugin->isInstalled('directlabelprinter')
+        && $plugin->isActivated('directlabelprinter')
+    ) {
+        // --- REMOVIDO o if(Session::haveRight(...)) daqui ---
+        // Registar o menu diretamente. O menu 'setup' pai já protege.
+        $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
+            'setup' => Config::class // Aponta para a classe Config
+        ];
     }
+    return true;
 }
 
 /**
