@@ -54,6 +54,10 @@ use GlpiPlugin\Directlabelprinter\Config; // <-- ADICIONE ESTE USE
 function plugin_init_directlabelprinter() {
     global $PLUGIN_HOOKS;
 
+    // --- LOG DE INÍCIO ---
+    // Use 'debug' ou 'error' para o nome do ficheiro, dependendo da sua config de log
+    Toolbox::logInFile("debug", "[Init] plugin_init_directlabelprinter() EXECUTADA.");
+
     $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
@@ -62,13 +66,20 @@ function plugin_init_directlabelprinter() {
         $plugin->isInstalled('directlabelprinter')
         && $plugin->isActivated('directlabelprinter')
     ) {
-        // --- REMOVIDO o if(Session::haveRight(...)) daqui ---
-        // Registar o menu diretamente. O menu 'setup' pai já protege.
+        // --- LOG DE VERIFICAÇÃO ---
+        Toolbox::logInFile("debug", "[Init] Plugin está Instalado e Ativo. A registar menu_toadd...");
+
         $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
             'setup' => Config::class // Aponta para a classe Config
         ];
+
+        // --- LOG DE REGISTO ---
+        Toolbox::logInFile("debug", "[Init] Hook menu_toadd registado para a classe Config.");
+
+    } else {
+        // --- LOG DE FALHA (Se aplicável) ---
+        Toolbox::logInFile("debug", "[Init] Plugin NÃO está Instalado ou Ativo. Hook de menu não registado.");
     }
-    return true;
 }
 
 /**

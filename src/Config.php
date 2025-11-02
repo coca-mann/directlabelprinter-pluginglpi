@@ -27,9 +27,13 @@ class Config extends CommonDBTM
      * Define como este item aparece no menu (hook 'menu_toadd')
      */
     static function getMenuContent() {
+        // --- LOG DE EXECUÇÃO DO MÉTODO ---
+        // Este log confirma que o GLPI não só carregou a classe, mas também chamou o método
+        \Toolbox::logInFile("debug", "[Config Class] getMenuContent() EXECUTADO.");
+
         // Garante que a linha ID 1 exista
         $config_id = self::getOrCreateDefaultConfig();
-        
+
         return [
             'title' => self::getTypeName(),
             'page'  => self::getFormURL(['id' => $config_id]), // Aponta para o formulário
