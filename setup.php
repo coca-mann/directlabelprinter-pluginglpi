@@ -43,16 +43,11 @@ define("PLUGIN_DIRECTLABELPRINTER_MIN_GLPI_VERSION", "11.0.0");
 define("PLUGIN_DIRECTLABELPRINTER_MAX_GLPI_VERSION", "11.0.99");
 
 use Glpi\Plugin\Hooks;
-// use GlpiPlugin\Directlabelprinter\Config as PluginConfig; // Import the new Config class with alias
-use Config as CoreConfig; // Import the core Config class
-use Plugin; // Import the Plugin class
-use Toolbox; // Import Toolbox for database operations
+use Plugin;
+use Toolbox;
 use Session;
+use GlpiPlugin\Directlabelprinter\Menu; // <-- ADICIONE ESTE USE
 
-/**
- * Init hooks of the plugin.
- * REQUIRED
- */
 /**
  * Init hooks of the plugin.
  */
@@ -67,20 +62,13 @@ function plugin_init_directlabelprinter() {
         $plugin->isInstalled('directlabelprinter')
         && $plugin->isActivated('directlabelprinter')
     ) {
-        // --- ADICIONAR ITEM AO MENU DE CONFIGURAÇÃO ---
-        // (Baseado no plugin News )
-        if (Session::haveRight('config', READ)) { // Verifica se o utilizador pode ver Configuração
+        // --- CORRIGIR HOOK DE MENU ---
+        if (Session::haveRight('config', READ)) {
             $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-                'setup' => [ // Adiciona ao menu 'Configuração'
-                    'title' => __('Direct Label Printer', 'directlabelprinter'),
-                    'page'  => 'plugins.directlabelprinter.config', // O NOME DA ROTA do Controller
-                    'icon'  => 'fas fa-print',
-                ]
+                // Aponta para a classe Menu que define os detalhes
+                'setup' => Menu::class
             ];
         }
-        
-        // REMOVER o hook config_page (ícone da ferramenta)
-        // unset($PLUGIN_HOOKS['config_page']['directlabelprinter']);
     }
 }
 
@@ -92,23 +80,15 @@ function plugin_version_directlabelprinter() {
         'name'           => __('Direct Label Printer', 'directlabelprinter'),
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
         'author'         => 'Juliano Ostroski',
-        // ... (license, homepage) ...
+        'license'        => 'GPLv2+',
+        'homepage'       => 'github.com/coca-mann',
         'requirements'   => [
             'glpi' => [
                 'min' => '10.0.0'
             ]
         ],
-        // REMOVER 'get_config_page_url'
+        // Garantir que 'get_config_page_url' está removido
     ];
-}
-
-/**
- * Check pre-requisites before install
- * OPTIONAL
- */
-function plugin_directlabelprinter_check_prerequisites(): bool
-{
-    return true;
 }
 
 /**
@@ -116,7 +96,6 @@ function plugin_directlabelprinter_check_prerequisites(): bool
  */
 function plugin_check_config($verbose = false) {
     global $DB;
-    // A verificação simples da tabela é suficiente para permitir a ativação
     if ($DB->tableExists('glpi_plugin_directlabelprinter_auth')) {
         return true;
     }
@@ -125,3 +104,12 @@ function plugin_check_config($verbose = false) {
     }
     return false;
 }
+
+/**
+ * Check pre-requisites before install
+ */
+function plugin_directlabelprinter_check_prerequisites(): bool {
+    return true;
+}
+
+?>
