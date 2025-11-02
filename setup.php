@@ -46,7 +46,7 @@ use Glpi\Plugin\Hooks;
 use Plugin;
 use Toolbox;
 use Session;
-use GlpiPlugin\Directlabelprinter\Menu; // <-- ADICIONE ESTE USE
+use GlpiPlugin\Directlabelprinter\Config; // <-- ADICIONE ESTE USE
 
 /**
  * Init hooks of the plugin.
@@ -58,16 +58,12 @@ function plugin_init_directlabelprinter() {
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
     $plugin = new Plugin();
-    if (
-        $plugin->isInstalled('directlabelprinter')
-        && $plugin->isActivated('directlabelprinter')
-    ) {
-        // --- REMOVER O IF DE VERIFICAÇÃO DE PERMISSÃO DAQUI ---
-        // A segurança é tratada pelo menu 'setup' pai e pelo Controller
-        $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-            // Aponta para a classe Menu que define os detalhes
-            'setup' => Menu::class
-        ];
+    if ($plugin->isInstalled('directlabelprinter') && $plugin->isActivated('directlabelprinter')) {
+        if (Session::haveRight('config', READ)) {
+            $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
+                'setup' => Config::class // <-- APONTAR PARA A CLASSE CONFIG
+            ];
+        }
     }
 }
 
