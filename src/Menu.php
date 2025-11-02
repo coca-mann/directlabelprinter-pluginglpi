@@ -18,12 +18,6 @@ class Menu
      */
     static function getMenuContent(): array
     {
-        // Verifica se o utilizador tem permissão ANTES de retornar o array
-        // Embora já verifiquemos no setup.php, é uma boa prática dupla
-        if (!Session::haveRight('config', READ)) {
-            return []; // Retorna vazio se não tiver permissão
-        }
-
         // Este é o array que define o item de menu [cite: 3966-3972]
         return [
             'title' => __('Direct Label Printer', 'directlabelprinter'), // Título exibido

@@ -62,13 +62,12 @@ function plugin_init_directlabelprinter() {
         $plugin->isInstalled('directlabelprinter')
         && $plugin->isActivated('directlabelprinter')
     ) {
-        // --- CORRIGIR HOOK DE MENU ---
-        if (Session::haveRight('config', READ)) {
-            $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-                // Aponta para a classe Menu que define os detalhes
-                'setup' => Menu::class
-            ];
-        }
+        // --- REMOVER O IF DE VERIFICAÇÃO DE PERMISSÃO DAQUI ---
+        // A segurança é tratada pelo menu 'setup' pai e pelo Controller
+        $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
+            // Aponta para a classe Menu que define os detalhes
+            'setup' => Menu::class
+        ];
     }
 }
 
