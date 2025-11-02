@@ -53,60 +53,52 @@ use Session;
  * Init hooks of the plugin.
  * REQUIRED
  */
+/**
+ * Init hooks of the plugin.
+ */
 function plugin_init_directlabelprinter() {
-    global $PLUGIN_HOOKS, $CFG_GLPI;
+    global $PLUGIN_HOOKS;
 
-    // ... (keep existing hooks like csrf_compliant) ...
     $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
-
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
     $plugin = new Plugin();
     if (
         $plugin->isInstalled('directlabelprinter')
         && $plugin->isActivated('directlabelprinter')
-        // Usar permissão 'config' -> READ para ver o ícone e aceder à página
-        && Session::haveRight('config', READ)
     ) {
-        // Aponta para o ficheiro PHP que tratará a configuração
-        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/config.php';
+        // --- ADICIONAR ITEM AO MENU DE CONFIGURAÇÃO ---
+        // (Baseado no plugin News )
+        if (Session::haveRight('config', READ)) { // Verifica se o utilizador pode ver Configuração
+            $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
+                'setup' => [ // Adiciona ao menu 'Configuração'
+                    'title' => __('Direct Label Printer', 'directlabelprinter'),
+                    'page'  => 'plugins.directlabelprinter.config', // O NOME DA ROTA do Controller
+                    'icon'  => 'fas fa-print',
+                ]
+            ];
+        }
+        
+        // REMOVER o hook config_page (ícone da ferramenta)
+        // unset($PLUGIN_HOOKS['config_page']['directlabelprinter']);
     }
-
-    // $PLUGIN_HOOKS[Hooks::ADD_JAVASCRIPT]['directlabelprinter'] = [
-    //    'js/directlabelprinter.js'
-    // ];
 }
 
 /**
  * Get the name and the version of the plugin
- * REQUIRED
- *
- * @return array{
- *      name: string,
- *      version: string,
- *      author: string,
- *      license: string,
- *      homepage: string,
- *      requirements: array{
- *          glpi: array{
- *              min: string,
- *              max: string,
- *          }
- *      }
- * }
  */
 function plugin_version_directlabelprinter() {
     return [
         'name'           => __('Direct Label Printer', 'directlabelprinter'),
         'version'        => PLUGIN_DIRECTLABELPRINTER_VERSION,
         'author'         => 'Juliano Ostroski',
-        'license'        => 'GPLv2+',
-        'homepage'       => 'github.com/coca-mann',
+        // ... (license, homepage) ...
         'requirements'   => [
             'glpi' => [
-                'min' => '11.0.0' // Ajuste conforme necessário
+                'min' => '10.0.0'
             ]
-        ]
+        ],
+        // REMOVER 'get_config_page_url'
     ];
 }
 
@@ -121,25 +113,15 @@ function plugin_directlabelprinter_check_prerequisites(): bool
 
 /**
  * Check configuration process for plugin
- * Can display a message only if failure and $verbose is true
- * @param boolean $verbose Enable verbosity. Default to false
- * @return boolean
  */
-function plugin_directlabelprinter_check_config($verbose = false) {
-    global $DB; // Acesso à variável global do banco de dados
-
-    // Apenas verificar se a tabela principal de autenticação existe.
-    // A configuração real (URL, etc.) será feita na página de configuração dedicada.
-    $auth_table = 'glpi_plugin_directlabelprinter_auth';
-
-    if ($DB->tableExists($auth_table)) {
-        // Se a tabela existe, consideramos o plugin "configurável" e permitimos a ativação.
+function plugin_check_config($verbose = false) {
+    global $DB;
+    // A verificação simples da tabela é suficiente para permitir a ativação
+    if ($DB->tableExists('glpi_plugin_directlabelprinter_auth')) {
         return true;
-    } else {
-        // Se a tabela não existe, algo deu errado na instalação.
-        if ($verbose) {
-            echo __('Tabela de autenticação do plugin não encontrada. Reinstale o plugin.', 'directlabelprinter');
-        }
-        return false; // Impede a ativação se a estrutura básica não estiver presente.
     }
+    if ($verbose) {
+        echo __('Tabela de autenticação não encontrada. Reinstale o plugin.', 'directlabelprinter');
+    }
+    return false;
 }
