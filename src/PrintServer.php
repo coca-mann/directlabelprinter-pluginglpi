@@ -101,9 +101,14 @@ class PrintServer extends CommonDBTM
         ]) . "</td>";
         echo "<td>" . __('Default printer', 'directlabelprinter') . "</td>";
         echo "<td>" . Html::input('default_printer_name', ['value' => $this->fields['default_printer_name'] ?? ''])
-            . "<br><span id='dlp-printer-fetch-status'></span>"
-            . "<button type='button' id='dlp-fetch-printers-btn' data-id='" . (int) $this->fields['id'] . "' class='btn btn-secondary btn-sm mt-1'>"
-            . __('Fetch printers', 'directlabelprinter') . "</button></td></tr>";
+            . "<br><span id='dlp-printer-fetch-status'></span>";
+
+        if ($this->fields['id']) {
+            echo "<button type='button' id='dlp-fetch-printers-btn' data-id='" . (int) $this->fields['id'] . "' class='btn btn-secondary btn-sm mt-1'>"
+                . __('Fetch printers', 'directlabelprinter') . "</button>";
+        }
+
+        echo "</td></tr>";
 
         echo "<tr class='tab_bg_1'><td>" . __('Comment', 'directlabelprinter') . "</td>";
         echo "<td colspan='3'>" . Html::textarea(['name' => 'comment', 'value' => $this->fields['comment'] ?? '', 'display' => false]) . "</td></tr>";
