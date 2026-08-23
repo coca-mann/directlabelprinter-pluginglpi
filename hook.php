@@ -222,18 +222,19 @@ function plugin_directlabelprinter_display_print_button(array $params) {
     echo "<button type='button' class='btn btn-secondary' id='dlp-print-single-btn'>";
     echo "<i class='fas fa-print'></i> " . __('Imprimir Etiqueta', 'directlabelprinter');
     echo "</button>";
+    $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
     echo "<script type='text/javascript'>
         document.addEventListener('DOMContentLoaded', function() {
             const btn = document.getElementById('dlp-print-single-btn');
             if (btn) {
                 btn.addEventListener('click', function() {
                     window.directLabelPrinter.openPrintModal(" .
-                        json_encode($itemtype) . ", " .
-                        json_encode($single_item) . ", " .
-                        json_encode($layout_options) . ", " .
-                        json_encode($layout_id) . ", " .
-                        json_encode($server_options) . ", " .
-                        json_encode($default_server_id) .
+                        json_encode($itemtype, $json_flags) . ", " .
+                        json_encode($single_item, $json_flags) . ", " .
+                        json_encode($layout_options, $json_flags) . ", " .
+                        json_encode($layout_id, $json_flags) . ", " .
+                        json_encode($server_options, $json_flags) . ", " .
+                        json_encode($default_server_id, $json_flags) .
                     ");
                 });
             }

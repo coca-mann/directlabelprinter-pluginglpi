@@ -78,20 +78,22 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
 
 
                 // Incluir JavaScript para abrir o modal (código existente, mas passando $items_for_js)
+                // Nota: este bloco é injetado via AJAX numa página já carregada (o sub-formulário
+                // de ação em massa do GLPI), então NÃO deve esperar por 'DOMContentLoaded' — esse
+                // evento já disparou muito antes deste <script> ser inserido no DOM.
+                $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
                 echo "<script type='text/javascript'>\n";
-                echo "document.addEventListener('DOMContentLoaded', function() {\n";
                 echo "   if (typeof window.directLabelPrinter === 'object' && typeof window.directLabelPrinter.openPrintModal === 'function') {\n";
                 echo "       window.directLabelPrinter.openPrintModal(" .
-                          json_encode($itemtype) . ", " .
-                          json_encode($items_for_js) . ", " . // Passa o array com mais dados
-                          json_encode($layout_options) . ", " .
-                          json_encode($default_layout_id) . ", " .
-                          json_encode($server_options) . ", " .
-                          json_encode($default_server_id) .
+                          json_encode($itemtype, $json_flags) . ", " .
+                          json_encode($items_for_js, $json_flags) . ", " . // Passa o array com mais dados
+                          json_encode($layout_options, $json_flags) . ", " .
+                          json_encode($default_layout_id, $json_flags) . ", " .
+                          json_encode($server_options, $json_flags) . ", " .
+                          json_encode($default_server_id, $json_flags) .
                      ");\n";
                  // ... (restante do código JS para erro) ...
                 echo "   }\n";
-                echo "});\n";
                 echo "</script>\n";
 
                 return true;
@@ -109,7 +111,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
         $item_obj = new $itemtype();
         foreach ($ids as $item_info) {
             $id = is_array($item_info) ? $item_info['id'] : $item_info;
-            if ($item_obj->getFromDB($id)) {
+            if ($item_obj->getFromDB($id) && $item_obj->can($id, READ)) {
                 $resolved[] = [
                     'id'     => (int) $id,
                     'titulo' => $item_obj->fields['name'] ?? ('Item ' . $id),
@@ -117,7 +119,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                     'ref'    => $item_obj->fields['otherserial'] ?? $item_obj->fields['serial'] ?? null,
                 ];
             } else {
-                \Toolbox::logInFile("directlabelprinter", sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $id));
+                \Toolbox::logInFile("directlabelprinter", sprintf("Item %s:%d não encontrado ou sem permissão para ação de impressão.", $itemtype, $id));
             }
         }
         return $resolved;
