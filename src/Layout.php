@@ -122,4 +122,63 @@ class Layout extends CommonDBTM
         }
         LayoutItemtype::syncForLayout((int) $this->fields['id'], $map);
     }
+
+    public function showForm($ID, array $options = [])
+    {
+        $this->initForm($ID, $options);
+        $this->showFormHeader($options);
+
+        echo "<tr class='tab_bg_1'><td>" . __('Name', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('name', ['value' => $this->fields['name'] ?? '']) . "</td>";
+        echo "<td>" . __('Font', 'directlabelprinter') . "</td>";
+        echo "<td>";
+        Dropdown::showFromArray('font_choice', [
+            'helvetica'  => 'Helvetica',
+            'times'      => 'Times',
+            'courier'    => 'Courier',
+            'dejavusans' => 'DejaVu Sans (UTF-8 / accents)',
+            'custom'     => __('Custom (upload .ttf)', 'directlabelprinter'),
+        ], ['value' => $this->fields['font_choice'] ?? 'dejavusans']);
+        echo "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Width (mm)', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('width_mm', ['value' => $this->fields['width_mm'] ?? 50, 'type' => 'number']) . "</td>";
+        echo "<td>" . __('Height (mm)', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('height_mm', ['value' => $this->fields['height_mm'] ?? 50, 'type' => 'number']) . "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Custom font file', 'directlabelprinter') . "</td>";
+        echo "<td colspan='3'>";
+        // Deliberately NOT overriding 'name' (default 'filename'): GLPI's upload JS always
+        // reports back into a hidden `_filename[]` field regardless of the visible widget
+        // name (confirmed: Document::add() reads the literal key `$input['_filename']`,
+        // src/Document.php:247) — renaming here would silently break Document::add() below.
+        Html::file(['onlyimages' => false]);
+        echo "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Asset types', 'directlabelprinter') . "</td><td colspan='3'>";
+        $current = $this->isNewID($ID) ? [] : LayoutItemtype::getItemtypesForLayout((int) $ID);
+        foreach (AssetTypes::WHITELIST as $itemtype) {
+            $checked = isset($current[$itemtype]) ? 'checked' : '';
+            $default_checked = ($current[$itemtype] ?? false) ? 'checked' : '';
+            echo "<label style='margin-right:1em'>";
+            echo "<input type='checkbox' name='_itemtypes[$itemtype]' value='1' $checked> $itemtype ";
+            echo "<input type='radio' name='_default_itemtype' value='$itemtype' $default_checked> " . __('default', 'directlabelprinter');
+            echo "</label>";
+        }
+        echo "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Elements (JSON)', 'directlabelprinter') . "</td><td colspan='3'>";
+        // Placeholder textarea — Task 8 layers the GridStack canvas on top of this same
+        // 'elements' field without changing its name, so this keeps working meanwhile.
+        echo Html::textarea([
+            'name'    => 'elements',
+            'value'   => $this->fields['elements'] ?? '[]',
+            'rows'    => 10,
+            'display' => false,
+        ]);
+        echo "</td></tr>";
+
+        $this->showFormButtons($options);
+        return true;
+    }
 }

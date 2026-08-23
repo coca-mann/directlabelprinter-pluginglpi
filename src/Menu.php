@@ -33,6 +33,8 @@
 
 namespace GlpiPlugin\Directlabelprinter;
 
+use GlpiPlugin\Directlabelprinter\Layout;
+
 class Menu
 {
     public static function getMenuContent(): array
@@ -50,7 +52,14 @@ class Menu
                         'add'    => PrintServer::getFormURL(false),
                     ],
                 ],
-                // 'layout' entry added in Task 6.
+                'layout' => [
+                    'title' => Layout::getTypeName(2),
+                    'page'  => Layout::getSearchURL(false),
+                    'links' => [
+                        'search' => Layout::getSearchURL(false),
+                        'add'    => Layout::getFormURL(false),
+                    ],
+                ],
             ],
         ];
     }
