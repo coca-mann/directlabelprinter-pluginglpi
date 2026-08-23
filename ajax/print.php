@@ -24,37 +24,37 @@ $remember_server = (bool) ($input['remember_server'] ?? false);
 
 if (!in_array($itemtype, AssetTypes::WHITELIST, true) || empty($ids)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => __('Invalid request.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Requisição inválida.', 'directlabelprinter')]);
     exit;
 }
 
 if (!class_exists($itemtype) || !(new $itemtype())->can(0, READ)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => __('Access denied.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Acesso negado.', 'directlabelprinter')]);
     exit;
 }
 
 $layout_id = $layout_id ?: LayoutItemtype::getDefaultLayoutId($itemtype);
 $layout = new Layout();
 if (!$layout_id || !$layout->getFromDB($layout_id)) {
-    echo json_encode(['success' => false, 'message' => __('No label layout available for this asset type.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Nenhum layout de etiqueta disponível para este tipo de ativo.', 'directlabelprinter')]);
     exit;
 }
 
 $printserver_id = $printserver_id ?: UserPref::getPreferredServerId(\Session::getLoginUserID());
 $server = new PrintServer();
 if (!$printserver_id || !$server->getFromDB($printserver_id)) {
-    echo json_encode(['success' => false, 'message' => __('No print server selected.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Nenhum servidor de impressão selecionado.', 'directlabelprinter')]);
     exit;
 }
 if (empty($server->fields['default_printer_name'])) {
-    echo json_encode(['success' => false, 'message' => __('The selected print server has no default printer configured.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('O servidor de impressão selecionado não possui uma impressora padrão configurada.', 'directlabelprinter')]);
     exit;
 }
 
 $items = DirectLabelPrinterActions::resolveItemsForPrint($itemtype, $ids);
 if (empty($items)) {
-    echo json_encode(['success' => false, 'message' => __('No valid items to print.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Nenhum item válido para impressão.', 'directlabelprinter')]);
     exit;
 }
 
@@ -63,7 +63,7 @@ try {
     $result = (new PrintServiceClient($server))->printPdf($pdf_bytes, $server->fields['default_printer_name']);
 } catch (\Throwable $e) {
     \Toolbox::logInFile('directlabelprinter', 'Print dispatch failed: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => __('An unexpected error occurred while generating or sending the label.', 'directlabelprinter')]);
+    echo json_encode(['success' => false, 'message' => __('Ocorreu um erro inesperado ao gerar ou enviar a etiqueta.', 'directlabelprinter')]);
     exit;
 }
 
@@ -73,5 +73,5 @@ if ($result['success'] && $remember_server) {
 
 echo json_encode([
     'success' => $result['success'],
-    'message' => $result['message'] ?: __('Label(s) sent to print successfully.', 'directlabelprinter'),
+    'message' => $result['message'] ?: __('Etiqueta(s) enviada(s) para impressão com sucesso.', 'directlabelprinter'),
 ]);
