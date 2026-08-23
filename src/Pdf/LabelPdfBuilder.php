@@ -25,7 +25,8 @@ class LabelPdfBuilder
         $width_mm = (float) $this->layout->fields['width_mm'];
         $height_mm = (float) $this->layout->fields['height_mm'];
 
-        $this->pdf = new TCPDF('P', 'mm', [$width_mm, $height_mm], true, 'UTF-8', false);
+        $orientation = $width_mm >= $height_mm ? 'L' : 'P';
+        $this->pdf = new TCPDF($orientation, 'mm', [$width_mm, $height_mm], true, 'UTF-8', false);
         $this->pdf->SetMargins(0, 0, 0);
         $this->pdf->setPrintHeader(false);
         $this->pdf->setPrintFooter(false);
