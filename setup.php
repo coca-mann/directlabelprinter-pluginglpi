@@ -84,6 +84,8 @@ function plugin_init_directlabelprinter() {
 
         $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
 
+        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/printserver.php';
+
     } else {
         // --- LOG DE FALHA (Se aplicável) ---
         Toolbox::logInFile("debug", "[Init] Plugin NÃO está Instalado ou Ativo. Hook de menu não registado.");
