@@ -462,5 +462,70 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         }
     }
 
+    // --- NOVAS FUNÇÕES ---
+    // Handlers para os botões "Testar Conexão" / "Buscar Impressoras" do formulário PrintServer
+    async function handleTestPrintServerClick(event) {
+        const btn = event.currentTarget;
+        const statusSpan = document.getElementById('dlp-test-connection-status');
+        btn.disabled = true;
+        statusSpan.textContent = __('Testing...', 'directlabelprinter');
+
+        try {
+            const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_test.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${encodeURIComponent(btn.dataset.id)}`
+            });
+            const result = await response.json();
+            statusSpan.textContent = result.message;
+            statusSpan.style.color = result.success ? 'green' : 'red';
+        } catch (error) {
+            statusSpan.textContent = `Erro: ${error.message}`;
+            statusSpan.style.color = 'red';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function handleFetchPrintersClick(event) {
+        const btn = event.currentTarget;
+        const statusSpan = document.getElementById('dlp-printer-fetch-status');
+        btn.disabled = true;
+        statusSpan.textContent = __('Fetching...', 'directlabelprinter');
+
+        try {
+            const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_fetch_printers.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${encodeURIComponent(btn.dataset.id)}`
+            });
+            const result = await response.json();
+            if (!result.success) {
+                statusSpan.textContent = result.message;
+                statusSpan.style.color = 'red';
+                return;
+            }
+            const names = result.printers.map(p => p.nome).join(', ') || __('No printers found.', 'directlabelprinter');
+            statusSpan.textContent = names;
+            statusSpan.style.color = 'green';
+        } catch (error) {
+            statusSpan.textContent = `Erro: ${error.message}`;
+            statusSpan.style.color = 'red';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const testPsBtn = document.getElementById('dlp-test-connection-btn');
+        if (testPsBtn) {
+            testPsBtn.addEventListener('click', handleTestPrintServerClick);
+        }
+        const fetchPrintersBtn = document.getElementById('dlp-fetch-printers-btn');
+        if (fetchPrintersBtn) {
+            fetchPrintersBtn.addEventListener('click', handleFetchPrintersClick);
+        }
+    });
+
 
 })(window.directLabelPrinter);
