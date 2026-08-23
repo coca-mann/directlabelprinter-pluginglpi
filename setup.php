@@ -80,8 +80,6 @@ function plugin_init_directlabelprinter() {
             'glpi_plugin_directlabelprinter_printservers.api_key',
         ];
 
-        $PLUGIN_HOOKS['post_item_form']['directlabelprinter'] = 'plugin_directlabelprinter_display_print_button';
-
         $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
 
         $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/printserver.php';

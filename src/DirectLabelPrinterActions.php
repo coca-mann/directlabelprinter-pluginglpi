@@ -76,22 +76,45 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                 $items_for_js = self::resolveItemsForPrint($itemtype, $items_raw);
 
 
-                // Incluir JavaScript para abrir o modal (código existente, mas passando $items_for_js)
+                // Renderiza os campos DIRETAMENTE dentro do modal nativo de ação em massa do
+                // GLPI (em vez de construir um modal próprio via JS) — GLPI já abre e gerencia
+                // um modal para exibir o retorno deste método; um segundo modal construído via
+                // JS ficava sobreposto ao nativo (vazio, na frente) e causava dois modais na tela.
+                echo "<div class='dlp-inline-print-form'>";
+                echo "<p><label for='dlp-layout-select'>" . __('Layout', 'directlabelprinter') . ":</label><br>";
+                echo "<select id='dlp-layout-select' class='form-select'>";
+                foreach ($layout_options as $opt) {
+                    $selected = ((int) $opt['id'] === (int) $default_layout_id) ? ' selected' : '';
+                    echo "<option value='" . (int) $opt['id'] . "'$selected>" . htmlspecialchars($opt['name']) . "</option>";
+                }
+                echo "</select></p>";
+
+                echo "<p><label for='dlp-server-select'>" . __('Print Server', 'directlabelprinter') . ":</label><br>";
+                echo "<select id='dlp-server-select' class='form-select'>";
+                if (empty($server_options)) {
+                    echo "<option value='' disabled selected>" . __('No print servers configured', 'directlabelprinter') . "</option>";
+                }
+                foreach ($server_options as $opt) {
+                    $selected = ((int) $opt['id'] === (int) $default_server_id) ? ' selected' : '';
+                    echo "<option value='" . (int) $opt['id'] . "'$selected>" . htmlspecialchars($opt['name']) . "</option>";
+                }
+                echo "</select></p>";
+
+                echo "<p><label><input type='checkbox' id='dlp-remember-server'> " . __('Remember this server', 'directlabelprinter') . "</label></p>";
+                echo "<div id='dlp-status-message' style='margin-top:10px;padding:10px;border-radius:4px;display:none;'></div>";
+                echo "<p><button type='button' id='dlp-send-btn' class='btn btn-primary'>" . __('Send', 'directlabelprinter') . "</button></p>";
+                echo "</div>";
+
                 // Nota: este bloco é injetado via AJAX numa página já carregada (o sub-formulário
                 // de ação em massa do GLPI), então NÃO deve esperar por 'DOMContentLoaded' — esse
                 // evento já disparou muito antes deste <script> ser inserido no DOM.
                 $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
                 echo "<script type='text/javascript'>\n";
-                echo "   if (typeof window.directLabelPrinter === 'object' && typeof window.directLabelPrinter.openPrintModal === 'function') {\n";
-                echo "       window.directLabelPrinter.openPrintModal(" .
+                echo "   if (typeof window.directLabelPrinter === 'object' && typeof window.directLabelPrinter.initInlinePrintForm === 'function') {\n";
+                echo "       window.directLabelPrinter.initInlinePrintForm(" .
                           json_encode($itemtype, $json_flags) . ", " .
-                          json_encode($items_for_js, $json_flags) . ", " . // Passa o array com mais dados
-                          json_encode($layout_options, $json_flags) . ", " .
-                          json_encode($default_layout_id, $json_flags) . ", " .
-                          json_encode($server_options, $json_flags) . ", " .
-                          json_encode($default_server_id, $json_flags) .
+                          json_encode($items_for_js, $json_flags) .
                      ");\n";
-                 // ... (restante do código JS para erro) ...
                 echo "   }\n";
                 echo "</script>\n";
 
