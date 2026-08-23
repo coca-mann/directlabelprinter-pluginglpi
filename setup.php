@@ -46,7 +46,7 @@ use Glpi\Plugin\Hooks;
 use Plugin;
 use Toolbox;
 use Session;
-use GlpiPlugin\Directlabelprinter\Config; // <-- ADICIONE ESTE USE
+use GlpiPlugin\Directlabelprinter\Menu;
 
 /**
  * Init hooks of the plugin.
@@ -70,11 +70,11 @@ function plugin_init_directlabelprinter() {
         Toolbox::logInFile("debug", "[Init] Plugin está Instalado e Ativo. A registar menu_toadd...");
 
         $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-            'setup' => Config::class // Aponta para a classe Config
+            'setup' => Menu::class,
         ];
 
         // --- LOG DE REGISTO ---
-        Toolbox::logInFile("debug", "[Init] Hook menu_toadd registado para a classe Config.");
+        Toolbox::logInFile("debug", "[Init] Hook menu_toadd registado para a classe Menu.");
 
         $PLUGIN_HOOKS['secured_fields']['directlabelprinter'] = [
             'glpi_plugin_directlabelprinter_printservers.api_key',

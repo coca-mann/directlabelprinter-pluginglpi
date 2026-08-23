@@ -35,6 +35,7 @@ namespace GlpiPlugin\Directlabelprinter;
 
 use CommonDBTM;
 use GLPIKey;
+use Html;
 
 class PrintServer extends CommonDBTM
 {
@@ -80,5 +81,42 @@ class PrintServer extends CommonDBTM
         }
         unset($input['_api_key_plain']);
         return $input;
+    }
+
+    public function showForm($ID, array $options = [])
+    {
+        $this->initForm($ID, $options);
+        $this->showFormHeader($options);
+
+        echo "<tr class='tab_bg_1'><td>" . __('Name', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('name', ['value' => $this->fields['name'] ?? '']) . "</td>";
+        echo "<td>" . __('URL', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('url', ['value' => $this->fields['url'] ?? '', 'size' => 40]) . "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('API Key', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('_api_key_plain', [
+            'type'        => 'password',
+            'value'       => '',
+            'placeholder' => empty($this->fields['api_key']) ? '' : '********',
+        ]) . "</td>";
+        echo "<td>" . __('Default printer', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('default_printer_name', ['value' => $this->fields['default_printer_name'] ?? ''])
+            . "<br><span id='dlp-printer-fetch-status'></span>"
+            . "<button type='button' id='dlp-fetch-printers-btn' data-id='" . (int) $this->fields['id'] . "' class='btn btn-secondary btn-sm mt-1'>"
+            . __('Fetch printers', 'directlabelprinter') . "</button></td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Comment', 'directlabelprinter') . "</td>";
+        echo "<td colspan='3'>" . Html::textarea(['name' => 'comment', 'value' => $this->fields['comment'] ?? '', 'display' => false]) . "</td></tr>";
+
+        if ($this->fields['id']) {
+            echo "<tr class='tab_bg_1'><td colspan='4'>";
+            echo "<button type='button' id='dlp-test-connection-btn' data-id='" . (int) $this->fields['id'] . "' class='btn btn-secondary btn-sm'>"
+                . __('Test Connection', 'directlabelprinter') . "</button> ";
+            echo "<span id='dlp-test-connection-status'></span>";
+            echo "</td></tr>";
+        }
+
+        $this->showFormButtons($options);
+        return true;
     }
 }
