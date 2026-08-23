@@ -174,15 +174,32 @@ class Layout extends CommonDBTM
         }
         echo "</td></tr>";
 
-        echo "<tr class='tab_bg_1'><td>" . __('Elements (JSON)', 'directlabelprinter') . "</td><td colspan='3'>";
-        // Placeholder textarea — Task 8 layers the GridStack canvas on top of this same
-        // 'elements' field without changing its name, so this keeps working meanwhile.
-        echo Html::textarea([
-            'name'    => 'elements',
-            'value'   => $this->fields['elements'] ?? '[]',
-            'rows'    => 10,
-            'display' => false,
-        ]);
+        echo "<tr class='tab_bg_1'><td colspan='4'>";
+        echo "<div id='dlp-layout-editor' data-width-mm='" . (float) ($this->fields['width_mm'] ?? 50)
+            . "' data-height-mm='" . (float) ($this->fields['height_mm'] ?? 50) . "'>";
+        echo "<div class='dlp-editor-toolbar'>";
+        echo "<button type='button' id='dlp-add-text-btn' class='btn btn-secondary btn-sm'>" . __('Add Text', 'directlabelprinter') . "</button> ";
+        echo "<button type='button' id='dlp-add-qr-btn' class='btn btn-secondary btn-sm'>" . __('Add QR Code', 'directlabelprinter') . "</button>";
+        echo "</div>";
+        echo "<div id='dlp-grid' class='grid-stack'></div>";
+        echo "<div id='dlp-property-panel' style='display:none'>";
+        echo "<select id='dlp-prop-data-source'>";
+        echo "<option value='titulo'>" . __('Title', 'directlabelprinter') . "</option>";
+        echo "<option value='url'>" . __('URL', 'directlabelprinter') . "</option>";
+        echo "<option value='ref'>" . __('Reference', 'directlabelprinter') . "</option>";
+        echo "<option value='custom'>" . __('Fixed text', 'directlabelprinter') . "</option>";
+        echo "</select>";
+        echo "<input type='text' id='dlp-prop-custom-text' placeholder='" . __('Fixed text', 'directlabelprinter') . "'>";
+        echo "<input type='number' id='dlp-prop-font-size' placeholder='" . __('Font size', 'directlabelprinter') . "'>";
+        echo "<label><input type='checkbox' id='dlp-prop-font-weight'> " . __('Bold', 'directlabelprinter') . "</label>";
+        echo "<label><input type='checkbox' id='dlp-prop-wrap'> " . __('Wrap text', 'directlabelprinter') . "</label>";
+        echo "<select id='dlp-prop-align'><option value='left'>" . __('Left', 'directlabelprinter') . "</option><option value='center'>" . __('Center', 'directlabelprinter') . "</option><option value='right'>" . __('Right', 'directlabelprinter') . "</option></select>";
+        echo "<select id='dlp-prop-valign'><option value='top'>" . __('Top', 'directlabelprinter') . "</option><option value='middle'>" . __('Middle', 'directlabelprinter') . "</option><option value='bottom'>" . __('Bottom', 'directlabelprinter') . "</option></select>";
+        echo "<label><input type='checkbox' id='dlp-prop-background'> " . __('Black background', 'directlabelprinter') . "</label>";
+        echo "<button type='button' id='dlp-remove-element-btn' class='btn btn-danger btn-sm'>" . __('Remove element', 'directlabelprinter') . "</button>";
+        echo "</div>";
+        echo "</div>";
+        echo Html::hidden('elements', ['value' => $this->fields['elements'] ?? '[]', 'id' => 'dlp-elements-input']);
         echo "</td></tr>";
 
         $this->showFormButtons($options);
