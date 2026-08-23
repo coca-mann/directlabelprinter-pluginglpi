@@ -31,6 +31,12 @@ class LabelPdfBuilder
         $this->pdf->setPrintHeader(false);
         $this->pdf->setPrintFooter(false);
         $this->pdf->SetAutoPageBreak(false);
+        // Zero out TCPDF's default cell padding (left, top, right, bottom) so GetStringWidth()'s
+        // raw glyph measurement in drawText()'s truncation branch matches MultiCell()'s actual
+        // usable width exactly — otherwise a string sized to just fit $w overflows MultiCell()'s
+        // padded interior and wraps to a second line even when allow_wrap is false. This also
+        // makes has_background's Cell() fill line up precisely with the box coordinates.
+        $this->pdf->setCellPaddings(0, 0, 0, 0);
 
         $font_name = $this->resolveFontName();
         $elements = $this->layout->getElements();
