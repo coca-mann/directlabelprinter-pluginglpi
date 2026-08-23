@@ -7,7 +7,6 @@ use Html;
 use MassiveAction;
 use Session;
 use Toolbox;
-use DateTime;
 use GlpiPlugin\Directlabelprinter\Layout;
 use GlpiPlugin\Directlabelprinter\LayoutItemtype;
 use GlpiPlugin\Directlabelprinter\UserPref;

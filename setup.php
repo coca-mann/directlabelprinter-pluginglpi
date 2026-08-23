@@ -32,7 +32,7 @@
  */
 
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.1');
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.2');
 
 // Minimal GLPI version, inclusive
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
@@ -108,20 +108,6 @@ function plugin_version_directlabelprinter() {
         ],
         // Garantir que 'get_config_page_url' está removido
     ];
-}
-
-/**
- * Check configuration process for plugin
- */
-function plugin_check_config($verbose = false) {
-    global $DB;
-    if ($DB->tableExists('glpi_plugin_directlabelprinter_auth')) {
-        return true;
-    }
-    if ($verbose) {
-        echo __('Tabela de autenticação não encontrada. Reinstale o plugin.', 'directlabelprinter');
-    }
-    return false;
 }
 
 /**
