@@ -83,6 +83,8 @@ function plugin_init_directlabelprinter() {
         $post_item_form_itemtypes = array_fill_keys(\GlpiPlugin\Directlabelprinter\AssetTypes::WHITELIST, 'plugin_directlabelprinter_display_print_button');
         $PLUGIN_HOOKS['post_item_form']['directlabelprinter'] = $post_item_form_itemtypes;
 
+        $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
+
     } else {
         // --- LOG DE FALHA (Se aplicável) ---
         Toolbox::logInFile("debug", "[Init] Plugin NÃO está Instalado ou Ativo. Hook de menu não registado.");

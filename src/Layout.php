@@ -128,8 +128,8 @@ class Layout extends CommonDBTM
     public function showForm($ID, array $options = [])
     {
         global $CFG_GLPI;
-        echo Html::script($CFG_GLPI['root_doc'] . '/public/lib/gridstack.min.js');
-        echo Html::css($CFG_GLPI['root_doc'] . '/public/lib/gridstack.min.css');
+        echo Html::script($CFG_GLPI['root_doc'] . '/lib/gridstack.min.js');
+        echo Html::css($CFG_GLPI['root_doc'] . '/lib/gridstack.min.css');
         echo Html::script($CFG_GLPI['root_doc'] . '/plugins/directlabelprinter/js/layout_editor.js');
 
         $this->initForm($ID, $options);

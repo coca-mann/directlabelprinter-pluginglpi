@@ -28,14 +28,6 @@ if (!in_array($itemtype, AssetTypes::WHITELIST, true) || empty($ids)) {
     exit;
 }
 
-try {
-    Session::checkCSRF($input, true); // preserve_token=true
-} catch (\Exception $e) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => __('Invalid or expired security token.', 'directlabelprinter')]);
-    exit;
-}
-
 if (!class_exists($itemtype) || !(new $itemtype())->can(0, READ)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => __('Access denied.', 'directlabelprinter')]);
