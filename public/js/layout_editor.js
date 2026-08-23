@@ -29,12 +29,19 @@
         // occupied by widgets, times cellHeight. On a brand new layout (zero elements) that's
         // 0, so the grid collapsed to an invisible 0px-tall box. minRow forces it to always
         // reserve the label's full height, matching the canvas size regardless of content.
+        //
+        // maxRow caps it at that SAME value: 'column' already stops widgets from being
+        // dragged/resized past the label's width (GridStack enforces column bounds natively),
+        // but there's no equivalent built-in row ceiling — without maxRow, dragging/resizing
+        // an element past the bottom edge silently grows the whole grid taller instead of
+        // being clamped like the side margins are.
         grid = GridStack.init({
             column: columns,
             cellHeight: 10,
             float: true,
             margin: 0,
             minRow: rows,
+            maxRow: rows,
         }, gridEl);
 
         grid.on('change', syncElementsFromGrid);
