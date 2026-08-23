@@ -470,11 +470,13 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         btn.disabled = true;
         statusSpan.textContent = __('Testing...', 'directlabelprinter');
 
+        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+
         try {
             const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_test.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${encodeURIComponent(btn.dataset.id)}`
+                body: `id=${encodeURIComponent(btn.dataset.id)}&_glpi_csrf_token=${encodeURIComponent(csrfToken)}`
             });
             const result = await response.json();
             statusSpan.textContent = result.message;
@@ -493,11 +495,13 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         btn.disabled = true;
         statusSpan.textContent = __('Fetching...', 'directlabelprinter');
 
+        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
+
         try {
             const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_fetch_printers.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${encodeURIComponent(btn.dataset.id)}`
+                body: `id=${encodeURIComponent(btn.dataset.id)}&_glpi_csrf_token=${encodeURIComponent(csrfToken)}`
             });
             const result = await response.json();
             if (!result.success) {

@@ -63,7 +63,13 @@ class PrintServiceClient
     public function printPdf(string $pdf_bytes, string $printer_name): array
     {
         $tmp_file = tempnam(sys_get_temp_dir(), 'dlp_');
-        file_put_contents($tmp_file, $pdf_bytes);
+        if ($tmp_file === false) {
+            return ['success' => false, 'message' => __('Could not create a temporary file for the PDF.', 'directlabelprinter')];
+        }
+        if (file_put_contents($tmp_file, $pdf_bytes) === false) {
+            unlink($tmp_file);
+            return ['success' => false, 'message' => __('Could not write the PDF to a temporary file.', 'directlabelprinter')];
+        }
 
         try {
             $ch = curl_init($this->base_url . '/api/print');
@@ -111,7 +117,7 @@ class PrintServiceClient
         }
         $decoded = json_decode((string) $body, true);
         if ($http_code < 200 || $http_code >= 300) {
-            $message = $decoded['mensagem'] ?? $decoded['erro'] ?? "HTTP $http_code";
+            $message = $decoded['mensagem'] ?? $decoded['erro'] ?? sprintf(__('HTTP %d', 'directlabelprinter'), $http_code);
             return ['success' => false, 'message' => $message];
         }
         return ['success' => true, 'message' => $decoded['mensagem'] ?? ''];

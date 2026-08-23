@@ -14,6 +14,14 @@ if (!PrintServer::canView()) {
     exit;
 }
 
+try {
+    Session::checkCSRF($_POST, true); // preserve_token=true: user may click Test then Fetch without reload
+} catch (\Exception $e) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => __('Invalid or expired security token.', 'directlabelprinter')]);
+    exit;
+}
+
 $id = (int) ($_POST['id'] ?? 0);
 $server = new PrintServer();
 if (!$id || !$server->getFromDB($id)) {
