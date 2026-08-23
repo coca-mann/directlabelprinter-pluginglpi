@@ -112,15 +112,16 @@ class Layout extends CommonDBTM
 
     private function syncItemtypesFromInput(): void
     {
-        // '_itemtypes' (array of itemtype => '1') and '_default_itemtype' (single string)
-        // are populated by the form built in Task 6.
+        // '_itemtypes' (array of itemtype => '1') and '_default_itemtypes' (array of
+        // itemtype => '1', one independent default flag per itemtype) are populated by
+        // the form built in showForm().
         if (!isset($this->input['_itemtypes'])) {
             return;
         }
-        $default_itemtype = $this->input['_default_itemtype'] ?? null;
+        $default_itemtypes = $this->input['_default_itemtypes'] ?? [];
         $map = [];
         foreach (array_keys($this->input['_itemtypes']) as $itemtype) {
-            $map[$itemtype] = ($itemtype === $default_itemtype);
+            $map[$itemtype] = isset($default_itemtypes[$itemtype]);
         }
         LayoutItemtype::syncForLayout((int) $this->fields['id'], $map);
     }
@@ -169,7 +170,7 @@ class Layout extends CommonDBTM
             $default_checked = ($current[$itemtype] ?? false) ? 'checked' : '';
             echo "<label style='margin-right:1em'>";
             echo "<input type='checkbox' name='_itemtypes[$itemtype]' value='1' $checked> $itemtype ";
-            echo "<input type='radio' name='_default_itemtype' value='$itemtype' $default_checked> " . __('default', 'directlabelprinter');
+            echo "<input type='checkbox' name='_default_itemtypes[$itemtype]' value='1' $default_checked> " . __('default', 'directlabelprinter');
             echo "</label>";
         }
         echo "</td></tr>";
