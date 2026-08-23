@@ -6,7 +6,6 @@ use CommonDBTM;
 use Html;
 use MassiveAction;
 use Session;
-use Toolbox;
 use GlpiPlugin\Directlabelprinter\Layout;
 use GlpiPlugin\Directlabelprinter\LayoutItemtype;
 use GlpiPlugin\Directlabelprinter\UserPref;
@@ -26,31 +25,20 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      */
     static function showMassiveActionsSubForm(MassiveAction $massive_action) {
         $action_key = $massive_action->getAction();
-        // Obter o itemtype de forma mais robusta
-        $itemtype = null;
-        
-        // Tentar diferentes abordagens para obter o itemtype
-        if (method_exists($massive_action, 'getType')) {
-            $itemtype = $massive_action->getType();
-        } elseif (method_exists($massive_action, 'getItemtype')) {
-            $itemtype = $massive_action->getItemtype(true); // Passa true para incluir namespace da classe
-        } elseif (method_exists($massive_action, 'getItemType')) {
-            $itemtype = $massive_action->getItemType();
-        } elseif (property_exists($massive_action, 'itemtype') && isset($massive_action->itemtype)) {
-            $itemtype = $massive_action->itemtype;
-        } elseif (method_exists($massive_action, 'getCurrentItemType')) {
-            $itemtype = $massive_action->getCurrentItemType();
-        } else {
-            // Fallback: tentar obter do contexto da requisição
-            if (isset($_REQUEST['itemtype'])) {
-                $itemtype = $_REQUEST['itemtype'];
-            } else {
-                // Último recurso: usar Computer como padrão
-                $itemtype = 'Computer';
-                Toolbox::logInFile("directlabelprinter", "DirectLabelPrinter: Não foi possível determinar o itemtype, usando 'Computer' como padrão");
-            }
-        }
-        $items_raw = $massive_action->getItems(); // Array de ['id' => X]
+
+        // MassiveAction::getItems() retorna um mapa itemtype => [id => id, ...].
+        // Nossa ação é registrada por itemtype (ver plugin_directlabelprinter_MassiveActions()
+        // em hook.php), então há sempre exatamente um itemtype presente aqui — as tentativas
+        // anteriores de obter o itemtype via getType()/getItemtype()/getItemType() etc. não
+        // funcionavam porque MassiveAction não expõe nenhum desses métodos; o resultado sempre
+        // caía no fallback 'Computer' e, pior, os IDs (no formato itemtype => [id => id]) eram
+        // repassados sem conversão para resolveItemsForPrint(), que espera uma lista simples
+        // [['id' => X], ...] — isso lançava um erro (chave 'id' inexistente) que truncava a
+        // resposta AJAX, deixando o modal nativo do GLPI vazio.
+        $items_by_itemtype = $massive_action->getItems();
+        $itemtype = array_key_first($items_by_itemtype) ?: 'Computer';
+        $item_ids = array_keys($items_by_itemtype[$itemtype] ?? []);
+        $items_raw = array_map(static fn($id) => ['id' => $id], $item_ids);
 
         switch ($action_key) {
             case 'print_label':
@@ -89,10 +77,10 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                 }
                 echo "</select></p>";
 
-                echo "<p><label for='dlp-server-select'>" . __('Print Server', 'directlabelprinter') . ":</label><br>";
+                echo "<p><label for='dlp-server-select'>" . __('Servidor de Impressão', 'directlabelprinter') . ":</label><br>";
                 echo "<select id='dlp-server-select' class='form-select'>";
                 if (empty($server_options)) {
-                    echo "<option value='' disabled selected>" . __('No print servers configured', 'directlabelprinter') . "</option>";
+                    echo "<option value='' disabled selected>" . __('Nenhum servidor de impressão configurado', 'directlabelprinter') . "</option>";
                 }
                 foreach ($server_options as $opt) {
                     $selected = ((int) $opt['id'] === (int) $default_server_id) ? ' selected' : '';
@@ -100,9 +88,9 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                 }
                 echo "</select></p>";
 
-                echo "<p><label><input type='checkbox' id='dlp-remember-server'> " . __('Remember this server', 'directlabelprinter') . "</label></p>";
+                echo "<p><label><input type='checkbox' id='dlp-remember-server'> " . __('Lembrar este servidor', 'directlabelprinter') . "</label></p>";
                 echo "<div id='dlp-status-message' style='margin-top:10px;padding:10px;border-radius:4px;display:none;'></div>";
-                echo "<p><button type='button' id='dlp-send-btn' class='btn btn-primary'>" . __('Send', 'directlabelprinter') . "</button></p>";
+                echo "<p><button type='button' id='dlp-send-btn' class='btn btn-primary'>" . __('Enviar', 'directlabelprinter') . "</button></p>";
                 echo "</div>";
 
                 // Nota: este bloco é injetado via AJAX numa página já carregada (o sub-formulário
