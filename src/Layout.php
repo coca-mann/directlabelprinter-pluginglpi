@@ -34,6 +34,8 @@
 namespace GlpiPlugin\Directlabelprinter;
 
 use CommonDBTM;
+use Html;
+use Dropdown;
 
 class Layout extends CommonDBTM
 {
@@ -133,10 +135,10 @@ class Layout extends CommonDBTM
         echo "<td>" . __('Font', 'directlabelprinter') . "</td>";
         echo "<td>";
         Dropdown::showFromArray('font_choice', [
-            'helvetica'  => 'Helvetica',
-            'times'      => 'Times',
-            'courier'    => 'Courier',
-            'dejavusans' => 'DejaVu Sans (UTF-8 / accents)',
+            'helvetica'  => __('Helvetica', 'directlabelprinter'),
+            'times'      => __('Times', 'directlabelprinter'),
+            'courier'    => __('Courier', 'directlabelprinter'),
+            'dejavusans' => __('DejaVu Sans (UTF-8 / accents)', 'directlabelprinter'),
             'custom'     => __('Custom (upload .ttf)', 'directlabelprinter'),
         ], ['value' => $this->fields['font_choice'] ?? 'dejavusans']);
         echo "</td></tr>";
