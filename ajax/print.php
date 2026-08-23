@@ -28,6 +28,14 @@ if (!in_array($itemtype, AssetTypes::WHITELIST, true) || empty($ids)) {
     exit;
 }
 
+try {
+    Session::checkCSRF($input, true); // preserve_token=true
+} catch (\Exception $e) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => __('Invalid or expired security token.', 'directlabelprinter')]);
+    exit;
+}
+
 if (!class_exists($itemtype) || !(new $itemtype())->can(0, READ)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => __('Access denied.', 'directlabelprinter')]);
@@ -58,9 +66,14 @@ if (empty($items)) {
     exit;
 }
 
-$pdf_bytes = (new LabelPdfBuilder($layout))->render($items);
-
-$result = (new PrintServiceClient($server))->printPdf($pdf_bytes, $server->fields['default_printer_name']);
+try {
+    $pdf_bytes = (new LabelPdfBuilder($layout))->render($items);
+    $result = (new PrintServiceClient($server))->printPdf($pdf_bytes, $server->fields['default_printer_name']);
+} catch (\Throwable $e) {
+    \Toolbox::logInFile('directlabelprinter', 'Print dispatch failed: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => __('An unexpected error occurred while generating or sending the label.', 'directlabelprinter')]);
+    exit;
+}
 
 if ($result['success'] && $remember_server) {
     UserPref::setPreferredServer(\Session::getLoginUserID(), (int) $server->fields['id']);
