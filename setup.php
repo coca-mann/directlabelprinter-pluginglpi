@@ -76,6 +76,10 @@ function plugin_init_directlabelprinter() {
         // --- LOG DE REGISTO ---
         Toolbox::logInFile("debug", "[Init] Hook menu_toadd registado para a classe Config.");
 
+        $PLUGIN_HOOKS['secured_fields']['directlabelprinter'] = [
+            'glpi_plugin_directlabelprinter_printservers.api_key',
+        ];
+
     } else {
         // --- LOG DE FALHA (Se aplicável) ---
         Toolbox::logInFile("debug", "[Init] Plugin NÃO está Instalado ou Ativo. Hook de menu não registado.");
