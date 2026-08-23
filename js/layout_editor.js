@@ -5,6 +5,7 @@
     let grid = null;
     let elements = [];
     let selectedIndex = null;
+    let selectedWidgetEl = null;
 
     function mmToCol(widthMm, labelWidthMm, columns) {
         return Math.max(1, Math.round((widthMm / labelWidthMm) * columns));
@@ -69,12 +70,13 @@
             h: Math.round(h / heightMm * (heightMm * PX_PER_MM / 10)),
             content: el.type === 'qrcode' ? 'QR' : (el.data_source === 'custom' ? el.custom_text : `{${el.data_source}}`),
         });
-        widgetEl.dataset.elementIndex = elements.indexOf(el);
-        widgetEl.addEventListener('click', () => selectElement(elements.indexOf(el)));
+        widgetEl._dlpElement = el; // direct object reference, never goes stale (unlike a stored index)
+        widgetEl.addEventListener('click', () => selectElement(elements.indexOf(el), widgetEl));
     }
 
-    function selectElement(index) {
+    function selectElement(index, widgetEl) {
         selectedIndex = index;
+        selectedWidgetEl = widgetEl;
         const el = elements[index];
         document.getElementById('dlp-property-panel').style.display = 'block';
         document.getElementById('dlp-prop-data-source').value = el.data_source || 'titulo';
@@ -107,12 +109,12 @@
         if (selectedIndex === null) {
             return;
         }
-        const widgetEl = document.querySelector(`[data-element-index="${selectedIndex}"]`);
-        if (widgetEl) {
-            grid.removeWidget(widgetEl);
+        if (selectedWidgetEl) {
+            grid.removeWidget(selectedWidgetEl);
         }
         elements.splice(selectedIndex, 1);
         selectedIndex = null;
+        selectedWidgetEl = null;
         document.getElementById('dlp-property-panel').style.display = 'none';
         syncElementsFromGrid();
     }
@@ -125,8 +127,8 @@
         const columns = grid.getColumn();
 
         grid.engine.nodes.forEach(node => {
-            const index = parseInt(node.el.dataset.elementIndex, 10);
-            if (Number.isNaN(index) || !elements[index]) {
+            const index = elements.indexOf(node.el._dlpElement);
+            if (index === -1 || !elements[index]) {
                 return;
             }
             const el = elements[index];
