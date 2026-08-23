@@ -39,11 +39,13 @@ use Dropdown;
 
 class Layout extends CommonDBTM
 {
-    public static $rightname = 'config';
+    // Ver o comentário equivalente em PrintServer::$rightname: 'config' não é um right
+    // CRUD real no GLPI 11, é só um cabeçalho de seção na matriz de perfis.
+    public static $rightname = 'plugin_directlabelprinter';
 
     public static function getTypeName($nb = 0)
     {
-        return _n('Label Layout', 'Label Layouts', $nb, 'directlabelprinter');
+        return _n('Layout de Etiqueta', 'Layouts de Etiqueta', $nb, 'directlabelprinter');
     }
 
     public function getElements(): array
@@ -131,76 +133,108 @@ class Layout extends CommonDBTM
         global $CFG_GLPI;
         echo Html::script($CFG_GLPI['root_doc'] . '/lib/gridstack.min.js');
         echo Html::css($CFG_GLPI['root_doc'] . '/lib/gridstack.min.css');
-        echo Html::script($CFG_GLPI['root_doc'] . '/plugins/directlabelprinter/js/layout_editor.js');
+        // GridStack não vem com nenhum estilo visível pronto para o item/canvas — sem isso o
+        // editor existe e funciona (confirmado via GridStack.init() e widgets sendo criados),
+        // mas nada aparece: nem borda no canvas, nem contorno nos elementos arrastáveis.
+        echo Html::css($CFG_GLPI['root_doc'] . '/plugins/directlabelprinter/css/layout_editor.css', ['version' => PLUGIN_DIRECTLABELPRINTER_VERSION]);
+        // 'version' explícito: sem isso, Html::script() usa GLPI_VERSION (constante do core,
+        // nunca muda com edições deste plugin) como cache-busting ?v=... — e como esse
+        // servidor fica atrás do Cloudflare, a URL nunca muda, o Cloudflare guarda a resposta
+        // em cache de borda por até 30 dias (Cache-Control: public, max-age=2592000) e nem
+        // hard refresh no navegador resolve, porque isso só ignora o cache local. Usando a
+        // versão do PRÓPRIO plugin aqui, o ?v=... muda a cada bump de versão.
+        echo Html::script($CFG_GLPI['root_doc'] . '/plugins/directlabelprinter/js/layout_editor.js', ['version' => PLUGIN_DIRECTLABELPRINTER_VERSION]);
 
         $this->initForm($ID, $options);
         $this->showFormHeader($options);
 
-        echo "<tr class='tab_bg_1'><td>" . __('Name', 'directlabelprinter') . "</td>";
+        // Nome/Fonte numa linha, Largura/Altura na coluna 1 das duas linhas seguintes com o
+        // upload de fonte customizada ocupando as duas (rowspan) ao lado — depois o editor de
+        // arrastar-e-soltar, e só então a lista de tipos de ativo.
+        echo "<tr class='tab_bg_1'>";
+        echo "<td>" . __('Nome', 'directlabelprinter') . "</td>";
         echo "<td>" . Html::input('name', ['value' => $this->fields['name'] ?? '']) . "</td>";
-        echo "<td>" . __('Font', 'directlabelprinter') . "</td>";
-        echo "<td>";
+        echo "<td>" . __('Fonte', 'directlabelprinter') . "</td>";
+        echo "<td id='dlp-font-choice-cell'>";
         Dropdown::showFromArray('font_choice', [
             'helvetica'  => __('Helvetica', 'directlabelprinter'),
             'times'      => __('Times', 'directlabelprinter'),
             'courier'    => __('Courier', 'directlabelprinter'),
-            'dejavusans' => __('DejaVu Sans (UTF-8 / accents)', 'directlabelprinter'),
-            'custom'     => __('Custom (upload .ttf)', 'directlabelprinter'),
-        ], ['value' => $this->fields['font_choice'] ?? 'dejavusans']);
-        echo "</td></tr>";
+            'dejavusans' => __('DejaVu Sans (UTF-8 / acentos)', 'directlabelprinter'),
+            'custom'     => __('Personalizada (enviar .ttf)', 'directlabelprinter'),
+        ], ['value' => $this->fields['font_choice'] ?: 'dejavusans']);
+        echo "</td>";
+        echo "</tr>";
 
-        echo "<tr class='tab_bg_1'><td>" . __('Width (mm)', 'directlabelprinter') . "</td>";
-        echo "<td>" . Html::input('width_mm', ['value' => $this->fields['width_mm'] ?? 50, 'type' => 'number']) . "</td>";
-        echo "<td>" . __('Height (mm)', 'directlabelprinter') . "</td>";
-        echo "<td>" . Html::input('height_mm', ['value' => $this->fields['height_mm'] ?? 50, 'type' => 'number']) . "</td></tr>";
-
-        echo "<tr class='tab_bg_1'><td>" . __('Custom font file', 'directlabelprinter') . "</td>";
-        echo "<td colspan='3'>";
+        echo "<tr class='tab_bg_1'>";
+        echo "<td>" . __('Largura (mm)', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('width_mm', ['value' => $this->fields['width_mm'] ?: 50, 'type' => 'number']) . "</td>";
+        // As duas células (label + upload) são escondidas/mostradas juntas via JS
+        // (layout_editor.js), conforme a fonte escolhida acima seja ou não 'custom'.
+        echo "<td rowspan='2' class='dlp-font-upload-cell'>" . __('Arquivo de fonte personalizada', 'directlabelprinter') . "</td>";
+        echo "<td rowspan='2' class='dlp-font-upload-cell'>";
         // Deliberately NOT overriding 'name' (default 'filename'): GLPI's upload JS always
         // reports back into a hidden `_filename[]` field regardless of the visible widget
         // name (confirmed: Document::add() reads the literal key `$input['_filename']`,
         // src/Document.php:247) — renaming here would silently break Document::add() below.
         Html::file(['onlyimages' => false]);
-        echo "</td></tr>";
+        echo "</td>";
+        echo "</tr>";
 
-        echo "<tr class='tab_bg_1'><td>" . __('Asset types', 'directlabelprinter') . "</td><td colspan='3'>";
-        $current = $this->isNewID($ID) ? [] : LayoutItemtype::getItemtypesForLayout((int) $ID);
-        foreach (AssetTypes::WHITELIST as $itemtype) {
-            $checked = isset($current[$itemtype]) ? 'checked' : '';
-            $default_checked = ($current[$itemtype] ?? false) ? 'checked' : '';
-            echo "<label style='margin-right:1em'>";
-            echo "<input type='checkbox' name='_itemtypes[$itemtype]' value='1' $checked> $itemtype ";
-            echo "<input type='checkbox' name='_default_itemtypes[$itemtype]' value='1' $default_checked> " . __('default', 'directlabelprinter');
-            echo "</label>";
-        }
-        echo "</td></tr>";
+        echo "<tr class='tab_bg_1'>";
+        echo "<td>" . __('Altura (mm)', 'directlabelprinter') . "</td>";
+        echo "<td>" . Html::input('height_mm', ['value' => $this->fields['height_mm'] ?: 50, 'type' => 'number']) . "</td>";
+        echo "</tr>";
 
         echo "<tr class='tab_bg_1'><td colspan='4'>";
-        echo "<div id='dlp-layout-editor' data-width-mm='" . (float) ($this->fields['width_mm'] ?? 50)
-            . "' data-height-mm='" . (float) ($this->fields['height_mm'] ?? 50) . "'>";
+        // ?: em vez de ?? — CommonDBTM::getEmpty() (chamado por initForm() em itens novos)
+        // preenche $this->fields com string vazia para colunas numéricas, não com o DEFAULT
+        // do schema; a chave já existe, então ?? nunca disparava e o editor recebia
+        // data-width-mm="0"/data-height-mm="0", fazendo GridStack.init() calcular 0 colunas
+        // (--gs-column-width: Infinity% no CSS gerado) e a grade não aparecer.
+        echo "<div id='dlp-layout-editor' data-width-mm='" . (float) ($this->fields['width_mm'] ?: 50)
+            . "' data-height-mm='" . (float) ($this->fields['height_mm'] ?: 50) . "'>";
         echo "<div class='dlp-editor-toolbar'>";
-        echo "<button type='button' id='dlp-add-text-btn' class='btn btn-secondary btn-sm'>" . __('Add Text', 'directlabelprinter') . "</button> ";
-        echo "<button type='button' id='dlp-add-qr-btn' class='btn btn-secondary btn-sm'>" . __('Add QR Code', 'directlabelprinter') . "</button>";
+        echo "<button type='button' id='dlp-add-text-btn' class='btn btn-secondary btn-sm'>" . __('Adicionar Texto', 'directlabelprinter') . "</button> ";
+        echo "<button type='button' id='dlp-add-qr-btn' class='btn btn-secondary btn-sm'>" . __('Adicionar QR Code', 'directlabelprinter') . "</button>";
         echo "</div>";
         echo "<div id='dlp-grid' class='grid-stack'></div>";
         echo "<div id='dlp-property-panel' style='display:none'>";
         echo "<select id='dlp-prop-data-source'>";
-        echo "<option value='titulo'>" . __('Title', 'directlabelprinter') . "</option>";
+        echo "<option value='titulo'>" . __('Título', 'directlabelprinter') . "</option>";
         echo "<option value='url'>" . __('URL', 'directlabelprinter') . "</option>";
-        echo "<option value='ref'>" . __('Reference', 'directlabelprinter') . "</option>";
-        echo "<option value='custom'>" . __('Fixed text', 'directlabelprinter') . "</option>";
+        echo "<option value='ref'>" . __('Referência', 'directlabelprinter') . "</option>";
+        echo "<option value='custom'>" . __('Texto fixo', 'directlabelprinter') . "</option>";
         echo "</select>";
-        echo "<input type='text' id='dlp-prop-custom-text' placeholder='" . __('Fixed text', 'directlabelprinter') . "'>";
-        echo "<input type='number' id='dlp-prop-font-size' placeholder='" . __('Font size', 'directlabelprinter') . "'>";
-        echo "<label><input type='checkbox' id='dlp-prop-font-weight'> " . __('Bold', 'directlabelprinter') . "</label>";
-        echo "<label><input type='checkbox' id='dlp-prop-wrap'> " . __('Wrap text', 'directlabelprinter') . "</label>";
-        echo "<select id='dlp-prop-align'><option value='left'>" . __('Left', 'directlabelprinter') . "</option><option value='center'>" . __('Center', 'directlabelprinter') . "</option><option value='right'>" . __('Right', 'directlabelprinter') . "</option></select>";
-        echo "<select id='dlp-prop-valign'><option value='top'>" . __('Top', 'directlabelprinter') . "</option><option value='middle'>" . __('Middle', 'directlabelprinter') . "</option><option value='bottom'>" . __('Bottom', 'directlabelprinter') . "</option></select>";
-        echo "<label><input type='checkbox' id='dlp-prop-background'> " . __('Black background', 'directlabelprinter') . "</label>";
-        echo "<button type='button' id='dlp-remove-element-btn' class='btn btn-danger btn-sm'>" . __('Remove element', 'directlabelprinter') . "</button>";
+        echo "<input type='text' id='dlp-prop-custom-text' placeholder='" . __('Texto fixo', 'directlabelprinter') . "'>";
+        echo "<input type='number' id='dlp-prop-font-size' placeholder='" . __('Tamanho da fonte', 'directlabelprinter') . "'>";
+        echo "<label>" . Html::getCheckbox(['id' => 'dlp-prop-font-weight', 'zero_on_empty' => false]) . " " . __('Negrito', 'directlabelprinter') . "</label>";
+        echo "<label>" . Html::getCheckbox(['id' => 'dlp-prop-wrap', 'zero_on_empty' => false]) . " " . __('Quebrar texto', 'directlabelprinter') . "</label>";
+        echo "<select id='dlp-prop-align'><option value='left'>" . __('Esquerda', 'directlabelprinter') . "</option><option value='center'>" . __('Centro', 'directlabelprinter') . "</option><option value='right'>" . __('Direita', 'directlabelprinter') . "</option></select>";
+        echo "<select id='dlp-prop-valign'><option value='top'>" . __('Topo', 'directlabelprinter') . "</option><option value='middle'>" . __('Meio', 'directlabelprinter') . "</option><option value='bottom'>" . __('Base', 'directlabelprinter') . "</option></select>";
+        echo "<label>" . Html::getCheckbox(['id' => 'dlp-prop-background', 'zero_on_empty' => false]) . " " . __('Fundo preto', 'directlabelprinter') . "</label>";
+        echo "<button type='button' id='dlp-remove-element-btn' class='btn btn-danger btn-sm'>" . __('Remover elemento', 'directlabelprinter') . "</button>";
         echo "</div>";
         echo "</div>";
         echo Html::hidden('elements', ['value' => $this->fields['elements'] ?? '[]', 'id' => 'dlp-elements-input']);
+        echo "</td></tr>";
+
+        echo "<tr class='tab_bg_1'><td>" . __('Tipos de ativo', 'directlabelprinter') . "</td><td colspan='3'>";
+        $current = $this->isNewID($ID) ? [] : LayoutItemtype::getItemtypesForLayout((int) $ID);
+        foreach (AssetTypes::WHITELIST as $itemtype) {
+            echo "<div style='margin-bottom:0.5em'>";
+            echo Html::getCheckbox([
+                'name'          => "_itemtypes[$itemtype]",
+                'checked'       => isset($current[$itemtype]),
+                'zero_on_empty' => false,
+            ]) . " $itemtype &nbsp;";
+            echo Html::getCheckbox([
+                'name'          => "_default_itemtypes[$itemtype]",
+                'checked'       => $current[$itemtype] ?? false,
+                'zero_on_empty' => false,
+            ]) . " " . __('padrão', 'directlabelprinter');
+            echo "</div>";
+        }
         echo "</td></tr>";
 
         $this->showFormButtons($options);

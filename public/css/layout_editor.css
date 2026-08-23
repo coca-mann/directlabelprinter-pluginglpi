@@ -1,0 +1,43 @@
+#dlp-layout-editor {
+    margin-top: 8px;
+}
+
+.dlp-editor-toolbar {
+    margin-bottom: 8px;
+}
+
+#dlp-grid.grid-stack {
+    border: 1px solid #999;
+    background-image:
+        repeating-linear-gradient(0deg, #f7f7f7, #f7f7f7 9px, #ececec 9px, #ececec 10px),
+        repeating-linear-gradient(90deg, #f7f7f7, #f7f7f7 9px, #ececec 9px, #ececec 10px);
+    background-blend-mode: multiply;
+    position: relative;
+}
+
+.grid-stack-item-content {
+    background: #ffffff;
+    border: 1px solid #4a6da7;
+    border-radius: 2px;
+    font-size: 10px;
+    line-height: 1.2;
+    padding: 2px 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: move;
+    color: #333333;
+    box-sizing: border-box;
+}
+
+#dlp-property-panel {
+    margin-top: 12px;
+    padding: 8px;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+#dlp-property-panel > * {
+    margin-right: 6px;
+    margin-bottom: 4px;
+}

@@ -19,16 +19,22 @@
         const widthMm = parseFloat(container.dataset.widthMm);
         const heightMm = parseFloat(container.dataset.heightMm);
         const columns = Math.round(widthMm * PX_PER_MM / 10); // 10px-wide columns
+        const rows = Math.round(heightMm * PX_PER_MM / 10); // 10px-tall rows
 
         const gridEl = document.getElementById('dlp-grid');
         gridEl.style.width = (widthMm * PX_PER_MM) + 'px';
-        gridEl.style.height = (heightMm * PX_PER_MM) + 'px';
 
+        // GridStack.init() replaces the element's inline style with its own (width/columns
+        // via CSS custom properties) and sizes height from CONTENT — number of rows actually
+        // occupied by widgets, times cellHeight. On a brand new layout (zero elements) that's
+        // 0, so the grid collapsed to an invisible 0px-tall box. minRow forces it to always
+        // reserve the label's full height, matching the canvas size regardless of content.
         grid = GridStack.init({
             column: columns,
             cellHeight: 10,
             float: true,
             margin: 0,
+            minRow: rows,
         }, gridEl);
 
         grid.on('change', syncElementsFromGrid);
@@ -52,6 +58,27 @@
         // GLPI submits the form with a plain HTTP POST (see front/layout.form.php) — no JS
         // fetch involved, so we just keep the hidden field in sync on every grid change,
         // which already happens via the 'change' listener above.
+
+        initFontUploadToggle();
+    }
+
+    // O upload de fonte customizada só faz sentido quando 'Personalizada' está selecionada
+    // no dropdown de Fonte — escondido/mostrado conforme o valor atual, tanto no carregamento
+    // quanto a cada troca.
+    function initFontUploadToggle() {
+        const fontSelect = document.querySelector('#dlp-font-choice-cell select[name="font_choice"]');
+        const uploadCells = document.querySelectorAll('.dlp-font-upload-cell');
+        if (!fontSelect || uploadCells.length === 0) {
+            return;
+        }
+        const toggle = () => {
+            const show = fontSelect.value === 'custom';
+            uploadCells.forEach(cell => {
+                cell.style.display = show ? '' : 'none';
+            });
+        };
+        fontSelect.addEventListener('change', toggle);
+        toggle();
     }
 
     function addElement(el, widthMm, heightMm, columns) {
@@ -145,5 +172,23 @@
         document.getElementById('dlp-elements-input').value = JSON.stringify(elements);
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    // Este script é injetado via AJAX (aba do GLPI 11, ajax/common.tabs.php) DEPOIS de
+    // 'DOMContentLoaded' já ter disparado — esperar por esse evento aqui significa que ele
+    // nunca chega a rodar. O <div id="dlp-layout-editor"> já existe no DOM neste ponto
+    // (jQuery só executa scripts injetados depois de inserir o HTML completo).
+    //
+    // MAS: o <script src="gridstack.min.js"> e este arquivo são carregados como duas tags
+    // <script> externas separadas na mesma leva de HTML injetado — jQuery busca e avalia
+    // scripts externos via AJAX assíncrono (jQuery._evalUrl), sem garantir que um termine
+    // antes do outro começar. Sem essa espera, GridStack podia ainda não existir quando
+    // este arquivo rodava, e GridStack.init() falhava em silêncio (nada aparecia, sem erro
+    // visível se o console não fosse checado no momento certo).
+    function waitForGridStackThenInit() {
+        if (typeof GridStack === 'undefined') {
+            setTimeout(waitForGridStackThenInit, 20);
+            return;
+        }
+        init();
+    }
+    waitForGridStackThenInit();
 })();
