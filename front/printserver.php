@@ -13,7 +13,6 @@ Html::header(
     PrintServer::getTypeName(2),
     $_SERVER['PHP_SELF'],
     "config",
-    "directlabelprinter",
     "printserver"
 );
 

@@ -11,7 +11,7 @@ use Migration;
 use MassiveAction;
 use Toolbox;
 
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.2'); // Make sure this matches your setup.php version
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.8'); // Make sure this matches your setup.php version
 
 /**
  * Install hook
@@ -123,6 +123,26 @@ function plugin_directlabelprinter_install() {
         $migration->dropTable($legacy_auth_table);
     }
 
+    // Right usado por PrintServer/Layout (ver comentários em src/PrintServer.php e
+    // src/Layout.php). 'config' (o right nativo do GLPI para "Configurar") não é um right
+    // CRUD real — é só um cabeçalho de seção na matriz de perfis, sem CREATE/UPDATE/PURGE
+    // atribuíveis — então formulários de adicionar/editar ficavam com os campos vazios (o
+    // tab AJAX que carrega o formulário aborta em silêncio quando can() retorna false).
+    // Concede ALLSTANDARDRIGHT a todos os perfis existentes para que o plugin funcione sem
+    // exigir configuração manual de perfil antes do primeiro uso.
+    $plugin_right_name = 'plugin_directlabelprinter';
+    // addProfileRights() insere uma linha por perfil existente — com vários perfis, isso
+    // já é mais de uma linha, então checar existência precisa contar, não usar
+    // getFromDBByCrit() (que lança exceção quando encontra mais de um resultado).
+    if (countElementsInTable(\ProfileRight::getTable(), ['name' => $plugin_right_name]) === 0) {
+        \ProfileRight::addProfileRights([$plugin_right_name]);
+        $DB->update(
+            \ProfileRight::getTable(),
+            ['rights' => ALLSTANDARDRIGHT],
+            ['name' => $plugin_right_name]
+        );
+    }
+
     $migration->executeMigration();
 
     return true;
@@ -151,6 +171,8 @@ function plugin_directlabelprinter_uninstall() {
             $DB->doQuery("DROP TABLE `$table`");
         }
     }
+
+    $DB->delete(\ProfileRight::getTable(), ['name' => 'plugin_directlabelprinter']);
 
     return true;
 }

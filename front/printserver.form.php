@@ -24,7 +24,6 @@ if (isset($_POST['add'])) {
         PrintServer::getTypeName(1),
         $_SERVER['PHP_SELF'],
         "config",
-        "directlabelprinter",
         "printserver"
     );
     $item->display(['id' => $_GET['id'] ?? -1]);

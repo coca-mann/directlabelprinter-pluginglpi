@@ -39,26 +39,32 @@ class Menu
 {
     public static function getMenuContent(): array
     {
+        // is_multi_entries faz o GLPI mesclar 'printserver' e 'layout' como itens de
+        // MESMO NÍVEL diretamente em $menu['config']['content'] (Html::generateMenuSession()),
+        // em vez de aninhá-los sob uma única entrada — isso é necessário para que ambos
+        // apareçam como itens separados e clicáveis no dropdown lateral do Setup
+        // (templates/layout/parts/menu.html.twig só itera sobre 'content', nunca desce em
+        // 'options' para montar a navegação da barra lateral). O setor "Setup"/"Configurar"
+        // do GLPI 11 usa internamente a chave 'config' em $menu (não 'setup') — a chave usada
+        // no registro do hook menu_toadd (setup.php) precisa bater com essa mesma chave.
         return [
-            'title' => __('Direct Label Printer', 'directlabelprinter'),
-            'page'  => PrintServer::getSearchURL(false),
-            'icon'  => 'fas fa-print',
-            'options' => [
-                'printserver' => [
-                    'title' => PrintServer::getTypeName(2),
-                    'page'  => PrintServer::getSearchURL(false),
-                    'links' => [
-                        'search' => PrintServer::getSearchURL(false),
-                        'add'    => PrintServer::getFormURL(false),
-                    ],
+            'is_multi_entries' => true,
+            'printserver' => [
+                'title' => PrintServer::getTypeName(2),
+                'page'  => PrintServer::getSearchURL(false),
+                'icon'  => 'fas fa-print',
+                'links' => [
+                    'search' => PrintServer::getSearchURL(false),
+                    'add'    => PrintServer::getFormURL(false),
                 ],
-                'layout' => [
-                    'title' => Layout::getTypeName(2),
-                    'page'  => Layout::getSearchURL(false),
-                    'links' => [
-                        'search' => Layout::getSearchURL(false),
-                        'add'    => Layout::getFormURL(false),
-                    ],
+            ],
+            'layout' => [
+                'title' => Layout::getTypeName(2),
+                'page'  => Layout::getSearchURL(false),
+                'icon'  => 'fas fa-tag',
+                'links' => [
+                    'search' => Layout::getSearchURL(false),
+                    'add'    => Layout::getFormURL(false),
                 ],
             ],
         ];

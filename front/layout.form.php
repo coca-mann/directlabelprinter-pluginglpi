@@ -24,7 +24,6 @@ if (isset($_POST['add'])) {
         Layout::getTypeName(1),
         $_SERVER['PHP_SELF'],
         "config",
-        "directlabelprinter",
         "layout"
     );
     $item->display(['id' => $_GET['id'] ?? -1]);

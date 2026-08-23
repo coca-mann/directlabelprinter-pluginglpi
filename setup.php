@@ -32,7 +32,7 @@
  */
 
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.2');
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.0.8');
 
 // Minimal GLPI version, inclusive
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
@@ -69,8 +69,13 @@ function plugin_init_directlabelprinter() {
         // --- LOG DE VERIFICAÇÃO ---
         Toolbox::logInFile("debug", "[Init] Plugin está Instalado e Ativo. A registar menu_toadd...");
 
+        // A chave aqui precisa bater com uma chave REAL de $menu em Html::generateMenuSession()
+        // (Html.php faz `if (isset($menu[$key])) { $menu[$key]['types'][] = $val; }` — se a
+        // chave não existir em $menu, o registro é descartado silenciosamente, sem erro). O
+        // setor "Configurar" do GLPI 11 usa a chave 'config', não 'setup' — confirmado
+        // despejando array_keys($_SESSION['glpimenu']) num teste HTTP real.
         $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
-            'setup' => Menu::class,
+            'config' => Menu::class,
         ];
 
         // --- LOG DE REGISTO ---
