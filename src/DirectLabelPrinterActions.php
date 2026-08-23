@@ -67,25 +67,7 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                 }
 
                 // ---> Preparar dados dos itens para o JS <---
-                $items_for_js = [];
-                if (!empty($items_raw)) {
-                     // Precisamos instanciar o objeto para pegar nome e URL
-                     $item_obj = new $itemtype(); // Instancia a classe correta (Computer, Monitor, etc.)
-                     foreach($items_raw as $item_info) {
-                         if ($item_obj->getFromDB($item_info['id'])) {
-                             $items_for_js[] = [
-                                 'id' => $item_info['id'],
-                                 'name' => $item_obj->fields['name'] ?? ('Item ' . $item_info['id']), // Fallback
-                                 'url' => $item_obj->getLinkURL() ?? '' // Pega a URL do item
-                             ];
-                         } else {
-                              // Item não encontrado, talvez logar um aviso
-                              Toolbox::logInFile("directlabelprinter", sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $item_info['id']));
-                         }
-                     }
-                }
-                // Limpa o objeto após o uso
-                unset($item_obj);
+                $items_for_js = self::resolveItemsForPrint($itemtype, $items_raw);
 
 
                 // Incluir JavaScript para abrir o modal (código existente, mas passando $items_for_js)
@@ -106,6 +88,30 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                 return true;
         }
         return parent::showMassiveActionsSubForm($massive_action);
+    }
+
+    /**
+     * @param array<int,array{id:int}> $ids Massive-action-style id list, e.g. [['id'=>1], ['id'=>2]]
+     * @return array<int,array{id:int,titulo:string,url:string,ref:?string}>
+     */
+    public static function resolveItemsForPrint(string $itemtype, array $ids): array
+    {
+        $resolved = [];
+        $item_obj = new $itemtype();
+        foreach ($ids as $item_info) {
+            $id = is_array($item_info) ? $item_info['id'] : $item_info;
+            if ($item_obj->getFromDB($id)) {
+                $resolved[] = [
+                    'id'     => (int) $id,
+                    'titulo' => $item_obj->fields['name'] ?? ('Item ' . $id),
+                    'url'    => $item_obj->getLinkURL() ?? '',
+                    'ref'    => $item_obj->fields['otherserial'] ?? $item_obj->fields['serial'] ?? null,
+                ];
+            } else {
+                \Toolbox::logInFile("directlabelprinter", sprintf("Item %s:%d não encontrado para ação de impressão.", $itemtype, $id));
+            }
+        }
+        return $resolved;
     }
 
     /**
