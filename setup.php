@@ -80,8 +80,7 @@ function plugin_init_directlabelprinter() {
             'glpi_plugin_directlabelprinter_printservers.api_key',
         ];
 
-        $post_item_form_itemtypes = array_fill_keys(\GlpiPlugin\Directlabelprinter\AssetTypes::WHITELIST, 'plugin_directlabelprinter_display_print_button');
-        $PLUGIN_HOOKS['post_item_form']['directlabelprinter'] = $post_item_form_itemtypes;
+        $PLUGIN_HOOKS['post_item_form']['directlabelprinter'] = 'plugin_directlabelprinter_display_print_button';
 
         $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
 

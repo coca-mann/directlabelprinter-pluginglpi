@@ -191,6 +191,9 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
  */
 function plugin_directlabelprinter_display_print_button(array $params) {
     $item = $params['item'];
+    if (!in_array($item::class, \GlpiPlugin\Directlabelprinter\AssetTypes::WHITELIST, true)) {
+        return;
+    }
     if ($item->isNewItem()) {
         return;
     }
