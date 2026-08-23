@@ -8,11 +8,11 @@ window.directLabelPrinter = window.directLabelPrinter || {};
     let currentItems = []; // Pode ser um ou muitos itens
     let layoutOptions = [];
     let defaultLayoutId = null;
-    let apiUrl = '';
-    let apiToken = '';
+    let serverOptions = [];
+    let defaultServerId = null;
 
     // Função para criar o HTML do modal (pode ser melhorado com templates)
-    function createModalHtml(layouts, defaultId) {
+    function createModalHtml(layouts, defaultId, servers, defaultServerId) {
         let optionsHtml = '';
         layouts.forEach(layout => {
             const selected = (layout.id == defaultId) ? ' selected' : '';
@@ -24,6 +24,19 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                 option.selected = true;
             }
             optionsHtml += option.outerHTML;
+        });
+
+        let serverOptionsHtml = '';
+        (servers || []).forEach(server => {
+            const selected = (server.id == defaultServerId) ? ' selected' : '';
+            // Usamos textContent para evitar XSS nos nomes dos servidores
+            const option = document.createElement('option');
+            option.value = server.id;
+            option.textContent = server.name;
+            if (selected) {
+                option.selected = true;
+            }
+            serverOptionsHtml += option.outerHTML;
         });
 
         // Tradução (idealmente, passar traduções do PHP)
@@ -46,6 +59,15 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                             ${optionsHtml}
                         </select>
                     </p>
+                    <p>
+                        <label for="dlp-server-select">${__('Print Server', 'directlabelprinter')}:</label><br/>
+                        <select id="dlp-server-select" class="form-control" style="width: 100%;">
+                            ${serverOptionsHtml}
+                        </select>
+                    </p>
+                    <p>
+                        <label><input type="checkbox" id="dlp-remember-server"> ${__('Remember this server', 'directlabelprinter')}</label>
+                    </p>
                     <div id="dlp-status-message" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
                 </div>
                 <div class="modal-footer" style="margin-top: 20px; text-align: right;">
@@ -58,56 +80,14 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         `;
     }
 
-    // Função para buscar a configuração da API (URL e Token) do backend
-    async function fetchApiConfig() {
-        // Criar um endpoint AJAX seguro no plugin para retornar a config
-        // Exemplo: /plugins/directlabelprinter/ajax/apiconfig.php
-        const ajaxUrl = `${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/apiconfig.php`;
-
-        try {
-            // Usando fetch API moderna
-            const response = await fetch(ajaxUrl, {
-                method: 'GET', // Ou POST se precisar enviar dados/tokens
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Incluir headers de sessão/CSRF se necessário para o endpoint apiconfig.php
-                    'Session-Token': CFG_GLPI.glpi_token // Exemplo, verifique se está disponível
-                    // 'X-CSRF-Token': CFG_GLPI.csrf_token // Exemplo, verifique se está disponível
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const config = await response.json();
-
-            if (config.error) {
-                throw new Error(config.error);
-            }
-
-            if (!config.api_url || !config.access_token) {
-                 throw new Error('Configuração da API incompleta retornada pelo servidor.');
-            }
-
-            apiUrl = config.api_url;
-            apiToken = config.access_token;
-            return true;
-
-        } catch (error) {
-            console.error('Erro ao buscar configuração da API:', error);
-            displayStatusMessage(`Erro ao buscar configuração da API: ${error.message}`, 'error');
-            return false;
-        }
-    }
-
-
     // Função chamada pelo PHP para iniciar o modal
-    dlp.openPrintModal = function(itemtype, items, layouts, defaultId) {
+    dlp.openPrintModal = function(itemtype, items, layouts, defaultId, servers, defaultServerIdArg) {
         currentItemtype = itemtype;
         currentItems = items; // Array de objetos {id: x, name?: y, url?: z}
         layoutOptions = layouts;
         defaultLayoutId = defaultId;
+        serverOptions = servers;
+        defaultServerId = defaultServerIdArg;
 
         // Remove modal antigo se existir
         const oldModal = document.getElementById('directlabelprinter-modal');
@@ -117,7 +97,7 @@ window.directLabelPrinter = window.directLabelPrinter || {};
 
 
         // Cria e adiciona o HTML do modal ao body
-        const modalHtml = createModalHtml(layoutOptions, defaultLayoutId);
+        const modalHtml = createModalHtml(layoutOptions, defaultLayoutId, serverOptions, defaultServerId);
         document.body.insertAdjacentHTML('beforeend', modalHtml);
 
         // Adiciona listeners aos botões
@@ -202,85 +182,46 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         const closeBtn = document.getElementById('dlp-close-btn');
         const loadingSpan = document.getElementById('dlp-loading');
         const layoutSelect = document.getElementById('dlp-layout-select');
+        const serverSelect = document.getElementById('dlp-server-select');
+        const rememberCheckbox = document.getElementById('dlp-remember-server');
 
         sendBtn.disabled = true;
         loadingSpan.style.display = 'inline';
-        displayStatusMessage('', 'info'); // Limpa mensagens anteriores
+        displayStatusMessage('', 'info');
 
-        const selectedLayoutId = layoutSelect.value;
+        const csrfToken = document.querySelector('input[name="_glpi_csrf_token"]')?.value || '';
 
-        // 1. Buscar configuração da API (URL e Token)
-        const configOk = await fetchApiConfig();
-        if (!configOk) {
-            sendBtn.disabled = false;
-            loadingSpan.style.display = 'none';
-            // Mensagem de erro já exibida por fetchApiConfig
-            return;
-        }
-
-        // 2. Preparar payload para a API externa
-        let apiPayload = [];
-        let itemsToProcess = currentItems; // Array de {id: x, name?: y, url?: z}
-
-        // Simplificação: Assumimos que o PHP já passou 'name' e 'url' no array 'items'
-        // Se não passou, precisaríamos de outro AJAX call ao GLPI aqui para buscar esses dados
-        if (itemsToProcess && itemsToProcess.length > 0) {
-            itemsToProcess.forEach(item => {
-                 // Verifica se temos os dados mínimos
-                 if (item.id && item.name && item.url) {
-                    apiPayload.push({
-                        titulo: item.name, // Nome do ativo
-                        url: item.url,     // URL do ativo no GLPI
-                        layout_id: parseInt(selectedLayoutId) // ID do layout selecionado
-                    });
-                 } else {
-                     console.warn("Item sem dados suficientes para impressão:", item);
-                     // Poderia mostrar uma mensagem parcial de erro
-                 }
-            });
-        }
-
-        if (apiPayload.length === 0) {
-             displayStatusMessage('Nenhum item válido para processar.', 'error');
-             sendBtn.disabled = false;
-             loadingSpan.style.display = 'none';
-             closeBtn.style.display = 'inline'; // Mostra botão fechar
-             return;
-        }
-
-
-        // 3. Chamar a API externa /imprimir/
         try {
-            const printApiUrl = `${apiUrl.replace(/\/$/, '')}/imprimir/`; // Garante que não haja //
-            const response = await fetch(printApiUrl, {
+            const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/print.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiToken}` // Envia o token
+                    'X-Glpi-Csrf-Token': csrfToken
                 },
-                body: JSON.stringify(apiPayload) // Envia o payload como JSON
+                body: JSON.stringify({
+                    itemtype: currentItemtype,
+                    items: currentItems.map(item => ({ id: item.id })),
+                    layout_id: layoutSelect.value ? parseInt(layoutSelect.value, 10) : null,
+                    printserver_id: serverSelect.value ? parseInt(serverSelect.value, 10) : null,
+                    remember_server: rememberCheckbox.checked,
+                    _glpi_csrf_token: csrfToken
+                })
             });
 
-            // Processa a resposta da API externa
-            const responseData = await response.json(); // Ou response.text() se não for JSON
+            const responseData = await response.json();
 
-            if (!response.ok) {
-                 // Tenta pegar mensagem de erro do corpo da resposta, se houver
-                 const errorMsg = responseData?.detail || responseData?.message || `HTTP error! status: ${response.status}`;
-                 throw new Error(errorMsg);
+            if (!response.ok || !responseData.success) {
+                throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
             }
 
-            // Sucesso!
-            displayStatusMessage(responseData.message || 'Etiqueta(s) enviada(s) para impressão com sucesso!', 'success'); // Exibe mensagem de sucesso da API
-
+            displayStatusMessage(responseData.message, 'success');
         } catch (error) {
             console.error('Erro ao chamar a API de impressão:', error);
             displayStatusMessage(`Erro ao imprimir: ${error.message}`, 'error');
         } finally {
-            // Limpeza da interface do modal após sucesso ou erro
             loadingSpan.style.display = 'none';
-            sendBtn.style.display = 'none'; // Esconde botão enviar
-            closeBtn.style.display = 'inline'; // Mostra botão fechar
+            sendBtn.style.display = 'none';
+            closeBtn.style.display = 'inline';
         }
     }
 

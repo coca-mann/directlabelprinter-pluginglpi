@@ -8,6 +8,9 @@ use MassiveAction;
 use Session;
 use Toolbox;
 use DateTime;
+use GlpiPlugin\Directlabelprinter\Layout;
+use GlpiPlugin\Directlabelprinter\LayoutItemtype;
+use GlpiPlugin\Directlabelprinter\UserPref;
 
 /**
  * Classe para lidar com as ações customizadas do plugin DirectLabelPrinter.
@@ -52,19 +55,23 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
 
         switch ($action_key) {
             case 'print_label':
-                // Obter layouts (código corrigido)
-                global $DB;
-                $iterator = $DB->request([
-                    'FROM' => 'glpi_plugin_directlabelprinter_layouts'
-                ]);
+                // Obter layouts associados ao itemtype (Task 5: Layout / LayoutItemtype)
                 $layout_options = [];
-                $default_layout_id = null;
-                foreach ($iterator as $layout) {
-                    $layout_options[] = ['id' => $layout['id_api'], 'name' => $layout['nome']];
-                    if ($layout['padrao'] == 1) {
-                        $default_layout_id = $layout['id_api'];
+                $default_layout_id = LayoutItemtype::getDefaultLayoutId($itemtype);
+                foreach (LayoutItemtype::getLayoutsForItemtype($itemtype) as $layouts_id) {
+                    $layout = new Layout();
+                    if ($layout->getFromDB($layouts_id)) {
+                        $layout_options[] = ['id' => $layouts_id, 'name' => $layout->fields['name']];
                     }
                 }
+
+                // Obter servidores de impressão e a preferência salva do usuário (Task 11)
+                global $DB;
+                $server_options = [];
+                foreach ($DB->request(['FROM' => 'glpi_plugin_directlabelprinter_printservers']) as $row) {
+                    $server_options[] = ['id' => (int) $row['id'], 'name' => $row['name']];
+                }
+                $default_server_id = UserPref::getPreferredServerId(\Session::getLoginUserID());
 
                 // ---> Preparar dados dos itens para o JS <---
                 $items_for_js = self::resolveItemsForPrint($itemtype, $items_raw);
@@ -78,7 +85,9 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
                           json_encode($itemtype) . ", " .
                           json_encode($items_for_js) . ", " . // Passa o array com mais dados
                           json_encode($layout_options) . ", " .
-                          json_encode($default_layout_id) .
+                          json_encode($default_layout_id) . ", " .
+                          json_encode($server_options) . ", " .
+                          json_encode($default_server_id) .
                      ");\n";
                  // ... (restante do código JS para erro) ...
                 echo "   }\n";
