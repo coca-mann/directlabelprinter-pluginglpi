@@ -53,7 +53,7 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         const rememberCheckbox = document.getElementById('dlp-remember-server');
 
         sendBtn.disabled = true;
-        sendBtn.textContent = __('Sending...', 'directlabelprinter');
+        sendBtn.textContent = __('Enviando...', 'directlabelprinter');
         displayStatusMessage('', 'info');
 
         try {
@@ -85,19 +85,33 @@ window.directLabelPrinter = window.directLabelPrinter || {};
             console.error('Erro ao chamar a API de impressão:', error);
             displayStatusMessage(`Erro ao imprimir: ${error.message}`, 'error');
             sendBtn.disabled = false;
-            sendBtn.textContent = __('Send', 'directlabelprinter');
+            sendBtn.textContent = __('Enviar', 'directlabelprinter');
         }
     }
 
     // --- Funções Auxiliares ---
 
     // --- NOVAS FUNÇÕES ---
-    // Handlers para os botões "Testar Conexão" / "Buscar Impressoras" do formulário PrintServer
+    // Handlers para os botões "Testar Conexão" / "Buscar Impressoras" do formulário PrintServer.
+    // Lêem url/chave DIRETO dos campos do formulário (não do banco) para funcionar mesmo antes
+    // de salvar o registro — só o id (quando existe) vai junto, como fallback no backend para
+    // a chave de API quando o campo de senha está vazio (= "manter a chave salva").
+    function getPrintServerFormCredentials() {
+        const urlInput = document.getElementById('dlp-url-input');
+        const apiKeyInput = document.getElementById('dlp-api-key-input');
+        return {
+            url: urlInput ? urlInput.value : '',
+            api_key_plain: apiKeyInput ? apiKeyInput.value : '',
+        };
+    }
+
     async function handleTestPrintServerClick(event) {
         const btn = event.currentTarget;
         const statusSpan = document.getElementById('dlp-test-connection-status');
+        const { url, api_key_plain } = getPrintServerFormCredentials();
         btn.disabled = true;
-        statusSpan.textContent = __('Testing...', 'directlabelprinter');
+        statusSpan.textContent = __('Testando...', 'directlabelprinter');
+        statusSpan.style.color = '';
 
         try {
             const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_test.php`, {
@@ -107,7 +121,7 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-Glpi-Csrf-Token': getAjaxCsrfToken()
                 },
-                body: `id=${encodeURIComponent(btn.dataset.id)}`
+                body: `id=${encodeURIComponent(btn.dataset.id)}&url=${encodeURIComponent(url)}&api_key_plain=${encodeURIComponent(api_key_plain)}`
             });
             const result = await response.json();
             statusSpan.textContent = result.message;
@@ -123,8 +137,11 @@ window.directLabelPrinter = window.directLabelPrinter || {};
     async function handleFetchPrintersClick(event) {
         const btn = event.currentTarget;
         const statusSpan = document.getElementById('dlp-printer-fetch-status');
+        const select = document.getElementById('dlp-default-printer-select');
+        const { url, api_key_plain } = getPrintServerFormCredentials();
         btn.disabled = true;
-        statusSpan.textContent = __('Fetching...', 'directlabelprinter');
+        statusSpan.textContent = __('Buscando...', 'directlabelprinter');
+        statusSpan.style.color = '';
 
         try {
             const response = await fetch(`${CFG_GLPI.root_doc}/plugins/directlabelprinter/ajax/printserver_fetch_printers.php`, {
@@ -134,7 +151,7 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-Glpi-Csrf-Token': getAjaxCsrfToken()
                 },
-                body: `id=${encodeURIComponent(btn.dataset.id)}`
+                body: `id=${encodeURIComponent(btn.dataset.id)}&url=${encodeURIComponent(url)}&api_key_plain=${encodeURIComponent(api_key_plain)}`
             });
             const result = await response.json();
             if (!result.success) {
@@ -142,8 +159,27 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                 statusSpan.style.color = 'red';
                 return;
             }
-            const names = result.printers.map(p => p.nome).join(', ') || __('No printers found.', 'directlabelprinter');
-            statusSpan.textContent = names;
+            if (select) {
+                const currentValue = select.value;
+                select.innerHTML = '';
+                if (result.printers.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = __('Nenhuma impressora encontrada.', 'directlabelprinter');
+                    select.appendChild(opt);
+                } else {
+                    result.printers.forEach(function(printer) {
+                        const opt = document.createElement('option');
+                        opt.value = printer.nome;
+                        opt.textContent = printer.nome;
+                        if (printer.nome === currentValue) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    });
+                }
+            }
+            statusSpan.textContent = __('Impressoras atualizadas.', 'directlabelprinter');
             statusSpan.style.color = 'green';
         } catch (error) {
             statusSpan.textContent = `Erro: ${error.message}`;
@@ -153,14 +189,19 @@ window.directLabelPrinter = window.directLabelPrinter || {};
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const testPsBtn = document.getElementById('dlp-test-connection-btn');
-        if (testPsBtn) {
-            testPsBtn.addEventListener('click', handleTestPrintServerClick);
+    // Delegação de eventos no document: o formulário do PrintServer é carregado via AJAX
+    // (aba do GLPI 11, ajax/common.tabs.php) DEPOIS de 'DOMContentLoaded' já ter disparado,
+    // então um addEventListener direto nos botões (dentro do listener de DOMContentLoaded)
+    // nunca era anexado — os botões ficavam mudos, sem erro nenhum no console.
+    document.addEventListener('click', function(event) {
+        const testBtn = event.target.closest('#dlp-test-connection-btn');
+        if (testBtn) {
+            handleTestPrintServerClick({ currentTarget: testBtn });
+            return;
         }
-        const fetchPrintersBtn = document.getElementById('dlp-fetch-printers-btn');
-        if (fetchPrintersBtn) {
-            fetchPrintersBtn.addEventListener('click', handleFetchPrintersClick);
+        const fetchBtn = event.target.closest('#dlp-fetch-printers-btn');
+        if (fetchBtn) {
+            handleFetchPrintersClick({ currentTarget: fetchBtn });
         }
     });
 

@@ -40,8 +40,20 @@ class PrintServiceClient
 
     public function __construct(PrintServer $server)
     {
-        $this->base_url = rtrim($server->fields['url'], '/');
+        $this->base_url = rtrim($server->fields['url'] ?? '', '/');
         $this->api_key  = $server->getDecryptedApiKey();
+    }
+
+    // Permite testar conexão / buscar impressoras a partir dos valores digitados no
+    // formulário (url + chave em texto plano), inclusive antes do registro ser salvo —
+    // não dá pra usar o construtor normal nesse caso porque ele exige um PrintServer já
+    // persistido (getDecryptedApiKey() lê de $server->fields, que só existe após getFromDB()).
+    public static function fromCredentials(string $url, string $api_key): self
+    {
+        $instance = new self(new PrintServer());
+        $instance->base_url = rtrim($url, '/');
+        $instance->api_key  = $api_key;
+        return $instance;
     }
 
     public function test(): array
@@ -64,11 +76,11 @@ class PrintServiceClient
     {
         $tmp_file = tempnam(sys_get_temp_dir(), 'dlp_');
         if ($tmp_file === false) {
-            return ['success' => false, 'message' => __('Could not create a temporary file for the PDF.', 'directlabelprinter')];
+            return ['success' => false, 'message' => __('Não foi possível criar um arquivo temporário para o PDF.', 'directlabelprinter')];
         }
         if (file_put_contents($tmp_file, $pdf_bytes) === false) {
             unlink($tmp_file);
-            return ['success' => false, 'message' => __('Could not write the PDF to a temporary file.', 'directlabelprinter')];
+            return ['success' => false, 'message' => __('Não foi possível gravar o PDF no arquivo temporário.', 'directlabelprinter')];
         }
 
         try {
@@ -113,13 +125,30 @@ class PrintServiceClient
     private function interpretResponse(?string $body, int $http_code, string $curl_error): array
     {
         if ($curl_error !== '') {
-            return ['success' => false, 'message' => __('Connection error:', 'directlabelprinter') . ' ' . $curl_error];
+            return ['success' => false, 'message' => __('Erro de conexão:', 'directlabelprinter') . ' ' . $curl_error];
         }
         $decoded = json_decode((string) $body, true);
         if ($http_code < 200 || $http_code >= 300) {
             $message = $decoded['mensagem'] ?? $decoded['erro'] ?? sprintf(__('HTTP %d', 'directlabelprinter'), $http_code);
-            return ['success' => false, 'message' => $message];
+            return ['success' => false, 'message' => $this->appendKnownErrorHint($message)];
         }
         return ['success' => true, 'message' => $decoded['mensagem'] ?? ''];
+    }
+
+    // print_service.py despacha a impressão via ShellExecute(..., "printto", ...), que
+    // delega para o leitor de PDF padrão do Windows resolver e imprimir — quando esse leitor
+    // é o Microsoft Edge (padrão de fábrica), a chamada falha com o erro genérico do Windows
+    // "(31, 'ShellExecute', 'Um dispositivo conectado ao sistema não está funcionando.')",
+    // não importa qual impressora for o alvo (confirmado: mesmo erro em duas impressoras
+    // diferentes). Trocar o leitor padrão de .pdf para o Adobe Acrobat Reader resolve.
+    private function appendKnownErrorHint(string $message): string
+    {
+        if (str_contains($message, 'ShellExecute')) {
+            $message .= ' ' . __(
+                'Isso costuma acontecer quando o leitor de PDF padrão do Windows (geralmente o Microsoft Edge) não suporta impressão via linha de comando. Tente trocar o leitor padrão de arquivos .pdf para o Adobe Acrobat Reader (Configurações do Windows → Aplicativos padrão → .pdf) e tente novamente.',
+                'directlabelprinter'
+            );
+        }
+        return $message;
     }
 }
