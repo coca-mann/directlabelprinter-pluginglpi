@@ -169,9 +169,7 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
 
     $actions = [];
 
-    $asset_types = [
-        'Computer', 'Monitor', 'NetworkEquipment', 'Printer', 'Phone', 'Peripheral',
-    ];
+    $asset_types = \GlpiPlugin\Directlabelprinter\AssetTypes::WHITELIST;
 
     if (in_array($itemtype, $asset_types)) {
         $action_key = 'print_label';
