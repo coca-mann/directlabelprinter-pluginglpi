@@ -28,7 +28,11 @@ if (!in_array($itemtype, AssetTypes::getWhitelist(), true) || empty($ids)) {
     exit;
 }
 
-if (!class_exists($itemtype) || !(new $itemtype())->can(0, READ)) {
+if (
+    !\Session::haveRight('plugin_directlabelprinter_print', READ)
+    || !class_exists($itemtype)
+    || !(new $itemtype())->can(0, READ)
+) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => __('Acesso negado.', 'directlabelprinter')]);
     exit;

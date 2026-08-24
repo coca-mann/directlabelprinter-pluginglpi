@@ -43,6 +43,25 @@ class Menu
         // 'options' alimenta o 4º nível do breadcrumb (templates/layout/parts/breadcrumbs.html.twig)
         // quando front/printserver.php e front/layout.php passam $option = 'printserver'/'layout'
         // pra Html::header(), permitindo voltar pro hub a partir das telas de lista/form.
+        // context_links.html.twig (core) renderiza o botão "+ Adicionar" só porque a chave
+        // 'add' existe no array 'links' — o template não checa canCreate() por conta própria,
+        // então isso é responsabilidade de quem monta o menu. Sem esse if, o botão aparecia
+        // pra quem só tem READ no right 'plugin_directlabelprinter' (o clique então renderizava
+        // formulário vazio, já que PrintServer::display()/Layout::display() barram por dentro).
+        $printserver_links = [
+            'search' => PrintServer::getSearchURL(false),
+        ];
+        if (PrintServer::canCreate()) {
+            $printserver_links['add'] = PrintServer::getFormURL(false);
+        }
+
+        $layout_links = [
+            'search' => Layout::getSearchURL(false),
+        ];
+        if (Layout::canCreate()) {
+            $layout_links['add'] = Layout::getFormURL(false);
+        }
+
         return [
             'title' => __('Config. Imp. Etiquetas', 'directlabelprinter'),
             'page'  => '/plugins/directlabelprinter/front/config.php',
@@ -52,19 +71,13 @@ class Menu
                     'title' => PrintServer::getTypeName(2),
                     'page'  => PrintServer::getSearchURL(false),
                     'icon'  => 'fas fa-print',
-                    'links' => [
-                        'search' => PrintServer::getSearchURL(false),
-                        'add'    => PrintServer::getFormURL(false),
-                    ],
+                    'links' => $printserver_links,
                 ],
                 'layout' => [
                     'title' => Layout::getTypeName(2),
                     'page'  => Layout::getSearchURL(false),
                     'icon'  => 'fas fa-tag',
-                    'links' => [
-                        'search' => Layout::getSearchURL(false),
-                        'add'    => Layout::getFormURL(false),
-                    ],
+                    'links' => $layout_links,
                 ],
             ],
         ];

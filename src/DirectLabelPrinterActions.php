@@ -15,6 +15,25 @@ use GlpiPlugin\Directlabelprinter\UserPref;
  */
 class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um padrão, embora não usemos muito dele aqui
 {
+    // Right dedicado ao uso da ação "Imprimir Etiqueta", separado do right
+    // 'plugin_directlabelprinter' (que controla apenas as telas de configuração de
+    // servidores/layouts em PrintServer/Layout). Registrado em
+    // plugin_directlabelprinter_install() via ProfileRight::addProfileRights() e checado em
+    // hook.php::plugin_directlabelprinter_MassiveActions() e ajax/print.php.
+    public static $rightname = 'plugin_directlabelprinter_print';
+
+    /**
+     * Imprimir etiqueta não é uma operação CRUD — só existe "pode usar" ou "não pode", então
+     * expomos um único checkbox (bit READ) na matriz de perfis em vez da matriz
+     * Criar/Ler/Atualizar/Excluir/Limpar padrão do CommonDBTM.
+     */
+    public function getRights($interface = 'central')
+    {
+        return [
+            READ => __('Imprimir Etiquetas', 'directlabelprinter'),
+        ];
+    }
+
     /**
      * Exibe o sub-formulário para a ação em massa (ou individual).
      * Neste caso, vamos usar JS para abrir um modal em vez de mostrar um formulário HTML direto.

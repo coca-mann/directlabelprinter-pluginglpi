@@ -32,7 +32,7 @@
  */
 
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.3.0');
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.4.0');
 
 // Minimal GLPI version, inclusive
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
@@ -47,6 +47,7 @@ use Plugin;
 use Toolbox;
 use Session;
 use GlpiPlugin\Directlabelprinter\Menu;
+use GlpiPlugin\Directlabelprinter\ProfileRights;
 
 /**
  * Init hooks of the plugin.
@@ -87,7 +88,14 @@ function plugin_init_directlabelprinter() {
 
         $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
 
-        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/printserver.php';
+        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/config.php';
+
+        // Expõe os rights do plugin (plugin_directlabelprinter / plugin_directlabelprinter_print)
+        // numa aba própria em Administração > Perfis — sem isso eles só seriam ajustáveis
+        // editando glpi_profilerights direto no banco (ver src/ProfileRights.php).
+        Plugin::registerClass(ProfileRights::class, [
+            'addtabon' => \Profile::class,
+        ]);
 
     } else {
         // --- LOG DE FALHA (Se aplicável) ---
