@@ -32,7 +32,7 @@
  */
 
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.5.0');
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.5.1');
 
 // Minimal GLPI version, inclusive
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
@@ -44,7 +44,6 @@ define("PLUGIN_DIRECTLABELPRINTER_MAX_GLPI_VERSION", "11.0.99");
 
 use Glpi\Plugin\Hooks;
 use Plugin;
-use Toolbox;
 use Session;
 use GlpiPlugin\Directlabelprinter\Menu;
 use GlpiPlugin\Directlabelprinter\ProfileRights;
@@ -55,10 +54,6 @@ use GlpiPlugin\Directlabelprinter\ProfileRights;
 function plugin_init_directlabelprinter() {
     global $PLUGIN_HOOKS;
 
-    // --- LOG DE INÍCIO ---
-    // Use 'debug' ou 'error' para o nome do ficheiro, dependendo da sua config de log
-    Toolbox::logInFile("debug", "[Init] plugin_init_directlabelprinter() EXECUTADA.");
-
     $PLUGIN_HOOKS['csrf_compliant']['directlabelprinter'] = true;
     $PLUGIN_HOOKS[Hooks::USE_MASSIVE_ACTION]['directlabelprinter'] = true;
 
@@ -67,9 +62,6 @@ function plugin_init_directlabelprinter() {
         $plugin->isInstalled('directlabelprinter')
         && $plugin->isActivated('directlabelprinter')
     ) {
-        // --- LOG DE VERIFICAÇÃO ---
-        Toolbox::logInFile("debug", "[Init] Plugin está Instalado e Ativo. A registar menu_toadd...");
-
         // A chave aqui precisa bater com uma chave REAL de $menu em Html::generateMenuSession()
         // (Html.php faz `if (isset($menu[$key])) { $menu[$key]['types'][] = $val; }` — se a
         // chave não existir em $menu, o registro é descartado silenciosamente, sem erro). O
@@ -78,9 +70,6 @@ function plugin_init_directlabelprinter() {
         $PLUGIN_HOOKS['menu_toadd']['directlabelprinter'] = [
             'config' => Menu::class,
         ];
-
-        // --- LOG DE REGISTO ---
-        Toolbox::logInFile("debug", "[Init] Hook menu_toadd registado para a classe Menu.");
 
         $PLUGIN_HOOKS['secured_fields']['directlabelprinter'] = [
             'glpi_plugin_directlabelprinter_printservers.api_key',
@@ -97,9 +86,6 @@ function plugin_init_directlabelprinter() {
             'addtabon' => \Profile::class,
         ]);
 
-    } else {
-        // --- LOG DE FALHA (Se aplicável) ---
-        Toolbox::logInFile("debug", "[Init] Plugin NÃO está Instalado ou Ativo. Hook de menu não registado.");
     }
 }
 

@@ -50,13 +50,6 @@ class PrintServer extends CommonDBTM
         return _n('Servidor de Impressão', 'Servidores de Impressão', $nb, 'directlabelprinter');
     }
 
-    public function setApiKey(string $plain_key): void
-    {
-        $this->fields['api_key'] = $plain_key === ''
-            ? ''
-            : (new GLPIKey())->encrypt($plain_key);
-    }
-
     public function getDecryptedApiKey(): string
     {
         $encrypted = $this->fields['api_key'] ?? '';

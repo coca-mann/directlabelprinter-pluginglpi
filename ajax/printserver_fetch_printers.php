@@ -27,9 +27,14 @@ if ($url === '') {
     exit;
 }
 
+// Só reaproveita a chave salva quando a URL testada é a MESMA já cadastrada para esse
+// servidor — sem isso, um usuário com apenas READ neste right podia informar o id de
+// QUALQUER print server já cadastrado junto de uma url própria, e o backend descriptografava
+// e enviava a chave real daquele servidor para a url arbitrária do atacante (exfiltração via
+// SSRF, contornando por completo o mascaramento de 'secured_fields' na UI).
 if ($api_key === '' && $id) {
     $server = new PrintServer();
-    if ($server->getFromDB($id)) {
+    if ($server->getFromDB($id) && rtrim($server->fields['url'] ?? '', '/') === rtrim($url, '/')) {
         $api_key = $server->getDecryptedApiKey();
     }
 }
