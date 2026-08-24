@@ -5,6 +5,20 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Changed
+
+- [19c182e](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/19c182e), [c337aa3](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/c337aa3) - Removidos um método de criptografia de chave de API que não era mais utilizado em nenhum lugar do código e um registro de log de depuração que rodava incondicionalmente em toda carga de página do GLPI, sem relação com o funcionamento do plugin.
+
+### Fixed
+
+- [1898c39](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/1898c39) - Corrigida a ação de impressão em massa, que aceitava qualquer layout de etiqueta já cadastrado independentemente do tipo de ativo selecionado, sem checar no servidor se aquele layout realmente estava associado ao tipo de ativo dos itens sendo impressos.
+
+### Security
+
+- [e920c7a](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/e920c7a) - Corrigida falha que permitia a um usuário com acesso apenas de leitura nas telas de configuração de servidores de impressão extrair a chave de API descriptografada de qualquer servidor já cadastrado, informando o id desse servidor junto de uma URL arbitrária controlada pelo próprio usuário nos testes de conexão/busca de impressoras (SSRF); as respostas desses testes também deixaram de expor detalhes internos de erro de rede.
+
 ## [0.5.0] - 2026-08-24
 
 ### Added
