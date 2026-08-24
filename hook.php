@@ -203,7 +203,7 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
 
     $actions = [];
 
-    $asset_types = \GlpiPlugin\Directlabelprinter\AssetTypes::WHITELIST;
+    $asset_types = \GlpiPlugin\Directlabelprinter\AssetTypes::getWhitelist();
 
     if (in_array($itemtype, $asset_types)) {
         $action_key = 'print_label';

@@ -228,7 +228,7 @@ class Layout extends CommonDBTM
         echo "<tr class='tab_bg_1'><td colspan='4'>";
         $current = $this->isNewID($ID) ? [] : LayoutItemtype::getItemtypesForLayout((int) $ID);
         echo "<table style='border-collapse:collapse'>";
-        foreach (AssetTypes::WHITELIST as $itemtype) {
+        foreach (AssetTypes::getWhitelist() as $itemtype) {
             $type_name = class_exists($itemtype) ? $itemtype::getTypeName(1) : $itemtype;
             echo "<tr>";
             echo "<td style='padding:4px 24px 4px 0'>" . Html::getCheckbox([

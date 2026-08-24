@@ -22,7 +22,7 @@ $layout_id = isset($input['layout_id']) ? (int) $input['layout_id'] : null;
 $printserver_id = isset($input['printserver_id']) ? (int) $input['printserver_id'] : null;
 $remember_server = (bool) ($input['remember_server'] ?? false);
 
-if (!in_array($itemtype, AssetTypes::WHITELIST, true) || empty($ids)) {
+if (!in_array($itemtype, AssetTypes::getWhitelist(), true) || empty($ids)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => __('Requisição inválida.', 'directlabelprinter')]);
     exit;

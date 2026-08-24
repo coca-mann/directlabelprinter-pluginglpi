@@ -5,7 +5,7 @@ Plugin para [GLPI 11](https://glpi-project.org/) que adiciona a ação em massa 
 ## Funcionalidades
 
 - Ação em massa **"Imprimir Etiqueta"** na tela de busca de cada itemtype suportado — disponível mesmo com um único item selecionado.
-- Itemtypes suportados: Computadores, Monitores, Dispositivos de rede, Impressoras, Telefones, Periféricos, Racks e Insumos (`Computer`, `Monitor`, `NetworkEquipment`, `Printer`, `Phone`, `Peripheral`, `Rack`, `ConsumableItem` — ver `src/AssetTypes.php::WHITELIST`).
+- Itemtypes suportados: Computadores, Monitores, Dispositivos de rede, Impressoras, Telefones, Periféricos, Racks e Insumos (`Computer`, `Monitor`, `NetworkEquipment`, `Printer`, `Phone`, `Peripheral`, `Rack`, `ConsumableItem` — ver `src/AssetTypes.php::WHITELIST`) — **mais qualquer ativo customizado** criado em Configuração > Definições de ativos (ex.: "Nobreak"), detectado automaticamente, sem precisar editar o plugin.
 - Editor de layout via drag-and-drop (GridStack): posicionamento livre de campos de texto e QR Code na etiqueta.
 - Suporte a múltiplos servidores de impressão e múltiplos layouts, com um layout padrão por itemtype.
 - O plugin lembra o último servidor de impressão usado por cada usuário.
