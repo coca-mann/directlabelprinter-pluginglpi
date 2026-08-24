@@ -160,23 +160,37 @@ window.directLabelPrinter = window.directLabelPrinter || {};
                 return;
             }
             if (select) {
+                // Preserva a impressora padrão já configurada quando ela não aparece na busca
+                // (lista vazia, ou a impressora foi renomeada/removida no servidor de impressão)
+                // — sem isso, nenhuma <option> ficava 'selected' e o navegador selecionava a
+                // primeira da lista automaticamente, apagando/trocando o valor salvo assim que
+                // o formulário fosse salvo, mesmo sem o usuário escolher nada explicitamente.
                 const currentValue = select.value;
                 select.innerHTML = '';
-                if (result.printers.length === 0) {
+                let matched = false;
+                result.printers.forEach(function(printer) {
+                    const opt = document.createElement('option');
+                    opt.value = printer.nome;
+                    opt.textContent = printer.nome;
+                    if (printer.nome === currentValue) {
+                        opt.selected = true;
+                        matched = true;
+                    }
+                    select.appendChild(opt);
+                });
+                if (!matched && currentValue) {
+                    const keep = document.createElement('option');
+                    keep.value = currentValue;
+                    keep.textContent = currentValue + ' ' + __('(não encontrada na busca atual)', 'directlabelprinter');
+                    keep.selected = true;
+                    select.insertBefore(keep, select.firstChild);
+                }
+                if (result.printers.length === 0 && !currentValue) {
                     const opt = document.createElement('option');
                     opt.value = '';
                     opt.textContent = __('Nenhuma impressora encontrada.', 'directlabelprinter');
+                    opt.selected = true;
                     select.appendChild(opt);
-                } else {
-                    result.printers.forEach(function(printer) {
-                        const opt = document.createElement('option');
-                        opt.value = printer.nome;
-                        opt.textContent = printer.nome;
-                        if (printer.nome === currentValue) {
-                            opt.selected = true;
-                        }
-                        select.appendChild(opt);
-                    });
                 }
             }
             statusSpan.textContent = __('Impressoras atualizadas.', 'directlabelprinter');
