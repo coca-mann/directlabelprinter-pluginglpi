@@ -1,0 +1,291 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: directlabelprinter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-24 18:50+0000\n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/DirectLabelPrinterActions.php:33
+msgid "Imprimir Etiquetas"
+msgstr ""
+
+#: src/DirectLabelPrinterActions.php:91
+msgid "Layout"
+msgstr ""
+
+#: src/DirectLabelPrinterActions.php:99
+msgid "Servidor de Impressão"
+msgstr ""
+
+#: src/DirectLabelPrinterActions.php:102
+msgid "Nenhum servidor de impressão configurado"
+msgstr ""
+
+#: src/DirectLabelPrinterActions.php:110
+msgid "Lembrar este servidor"
+msgstr ""
+
+#: public/js/components.js:88 src/DirectLabelPrinterActions.php:112
+msgid "Enviar"
+msgstr ""
+
+#: src/Layout.php:155 src/PrintServer.php:102
+msgid "Nome"
+msgstr ""
+
+#: src/Layout.php:157
+msgid "Fonte"
+msgstr ""
+
+#: src/Layout.php:160
+msgid "Helvetica"
+msgstr ""
+
+#: src/Layout.php:161
+msgid "Times"
+msgstr ""
+
+#: src/Layout.php:162
+msgid "Courier"
+msgstr ""
+
+#: src/Layout.php:163
+msgid "DejaVu Sans (UTF-8 / acentos)"
+msgstr ""
+
+#: src/Layout.php:164
+msgid "Personalizada (enviar .ttf)"
+msgstr ""
+
+#: src/Layout.php:175
+msgid "Largura (mm)"
+msgstr ""
+
+#: src/Layout.php:179
+msgid "Arquivo de fonte personalizada"
+msgstr ""
+
+#: src/Layout.php:190
+msgid "Altura (mm)"
+msgstr ""
+
+#: src/Layout.php:203
+msgid "Adicionar Texto"
+msgstr ""
+
+#: src/Layout.php:204
+msgid "Adicionar QR Code"
+msgstr ""
+
+#: src/Layout.php:209
+msgid "Título"
+msgstr ""
+
+#: src/Layout.php:210 src/PrintServer.php:114
+msgid "URL"
+msgstr ""
+
+#: src/Layout.php:211
+msgid "Referência"
+msgstr ""
+
+#: src/Layout.php:212 src/Layout.php:214
+msgid "Texto fixo"
+msgstr ""
+
+#: src/Layout.php:215
+msgid "Tamanho da fonte"
+msgstr ""
+
+#: src/Layout.php:216
+msgid "Negrito"
+msgstr ""
+
+#: src/Layout.php:217
+msgid "Quebrar texto"
+msgstr ""
+
+#: src/Layout.php:218
+msgid "Esquerda"
+msgstr ""
+
+#: src/Layout.php:218
+msgid "Centro"
+msgstr ""
+
+#: src/Layout.php:218
+msgid "Direita"
+msgstr ""
+
+#: src/Layout.php:219
+msgid "Topo"
+msgstr ""
+
+#: src/Layout.php:219
+msgid "Meio"
+msgstr ""
+
+#: src/Layout.php:219
+msgid "Base"
+msgstr ""
+
+#: src/Layout.php:220
+msgid "Fundo preto"
+msgstr ""
+
+#: src/Layout.php:221
+msgid "Remover elemento"
+msgstr ""
+
+#: src/Layout.php:227
+msgid "Tipos de ativo"
+msgstr ""
+
+#: src/Layout.php:243
+msgid "Padrão"
+msgstr ""
+
+#: src/Menu.php:66
+msgid "Config. Imp. Etiquetas"
+msgstr ""
+
+#: setup.php:111 src/Menu.php:88 src/ProfileRights.php:54 src/ProfileRights.php:98
+msgid "Direct Label Printer"
+msgstr ""
+
+#: src/PrintServer.php:104
+msgid "Comentário"
+msgstr ""
+
+#: src/PrintServer.php:119
+msgid "Chave de API"
+msgstr ""
+
+#: src/PrintServer.php:129
+msgid "Impressora padrão"
+msgstr ""
+
+#: src/PrintServer.php:136
+msgid "Nenhuma selecionada"
+msgstr ""
+
+#: src/PrintServer.php:146
+msgid "Testar Conexão"
+msgstr ""
+
+#: src/PrintServer.php:154
+msgid "Buscar impressoras"
+msgstr ""
+
+#: src/PrintServiceClient.php:79
+msgid "Não foi possível criar um arquivo temporário para o PDF."
+msgstr ""
+
+#: src/PrintServiceClient.php:83
+msgid "Não foi possível gravar o PDF no arquivo temporário."
+msgstr ""
+
+#: src/PrintServiceClient.php:128
+msgid "Erro de conexão:"
+msgstr ""
+
+#: src/PrintServiceClient.php:132
+msgid "HTTP %d"
+msgstr ""
+
+#: src/PrintServiceClient.php:147
+msgid "Isso costuma acontecer quando o leitor de PDF padrão do Windows (geralmente o Microsoft Edge) não suporta impressão via linha de comando. Tente trocar o leitor padrão de arquivos .pdf para o Adobe Acrobat Reader (Configurações do Windows → Aplicativos padrão → .pdf) e tente novamente."
+msgstr ""
+
+#: src/ProfileRights.php:87
+msgid "Configurar servidores de impressão e layouts"
+msgstr ""
+
+#: src/ProfileRights.php:92
+msgid "Imprimir etiquetas"
+msgstr ""
+
+#: ajax/print.php:27
+msgid "Requisição inválida."
+msgstr ""
+
+#: ajax/print.php:37 ajax/printserver_fetch_printers.php:13 ajax/printserver_test.php:13
+msgid "Acesso negado."
+msgstr ""
+
+#: ajax/print.php:44
+msgid "Nenhum layout de etiqueta disponível para este tipo de ativo."
+msgstr ""
+
+#: ajax/print.php:51
+msgid "Nenhum servidor de impressão selecionado."
+msgstr ""
+
+#: ajax/print.php:55
+msgid "O servidor de impressão selecionado não possui uma impressora padrão configurada."
+msgstr ""
+
+#: ajax/print.php:61
+msgid "Nenhum item válido para impressão."
+msgstr ""
+
+#: ajax/print.php:70
+msgid "Ocorreu um erro inesperado ao gerar ou enviar a etiqueta."
+msgstr ""
+
+#: ajax/print.php:80
+msgid "Etiqueta(s) enviada(s) para impressão com sucesso."
+msgstr ""
+
+#: ajax/printserver_fetch_printers.php:26 ajax/printserver_test.php:27
+msgid "Informe a URL do servidor."
+msgstr ""
+
+#: ajax/printserver_test.php:40
+msgid "Conexão bem-sucedida."
+msgstr ""
+
+#: public/js/components.js:56
+msgid "Enviando..."
+msgstr ""
+
+#: public/js/components.js:113
+msgid "Testando..."
+msgstr ""
+
+#: public/js/components.js:143
+msgid "Buscando..."
+msgstr ""
+
+#: public/js/components.js:184
+msgid "(não encontrada na busca atual)"
+msgstr ""
+
+#: public/js/components.js:191
+msgid "Nenhuma impressora encontrada."
+msgstr ""
+
+#: public/js/components.js:196
+msgid "Impressoras atualizadas."
+msgstr ""
+
+#: hook.php:248
+msgid "Imprimir Etiqueta"
+msgstr ""
+
+#: src/Layout.php:48
+msgid "Layout de Etiqueta"
+msgid_plural "Layouts de Etiqueta"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/PrintServer.php:50
+msgid "Servidor de Impressão"
+msgid_plural "Servidores de Impressão"
+msgstr[0] ""
+msgstr[1] ""
