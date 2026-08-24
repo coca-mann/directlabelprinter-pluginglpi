@@ -14,7 +14,11 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- [92cea77](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/92cea77) - Adicionado processo de changelog e versionamento do projeto (`CHANGELOG.md`, `docs/versioning.md` e template de PR no GitHub).
+
 ### Changed
+
+- [9aaee0b](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/9aaee0b) - Removida a pasta `tudo_old/`, um protótipo de página de configuração que nunca chegou a ser integrado ao plugin.
 
 ### Fixed
 
