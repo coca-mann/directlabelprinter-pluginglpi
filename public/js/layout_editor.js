@@ -30,33 +30,35 @@
         // 0, so the grid collapsed to an invisible 0px-tall box. minRow forces it to always
         // reserve the label's full height, matching the canvas size regardless of content.
         //
-        // maxRow caps it at that SAME value: 'column' already stops widgets from being
-        // dragged/resized past the label's width (GridStack enforces column bounds natively),
-        // but there's no equivalent built-in row ceiling — without maxRow, dragging/resizing
-        // an element past the bottom edge silently grows the whole grid taller instead of
-        // being clamped like the side margins are.
+        // maxRow is deliberately NOT set here. GridStack.addWidget()/moveNode() always run
+        // collision avoidance against it, relocating a widget away from wherever an
+        // already-placed widget sits — there's no reliable "just put it exactly here" escape
+        // hatch (moveNode's forceCollide + update() were tried and, empirically, still let
+        // GridStack's own collision search win). Since this editor intentionally allows
+        // elements to overlap (the label author's call, e.g. text over a background box),
+        // loading saved elements at their exact stored x/y/w/h — unclamped, maxRow-free — is
+        // the only way that doesn't risk moving an unrelated, validly-placed element as a
+        // side effect (confirmed happening with a real saved layout: an oversized QR pushed
+        // the title to the bottom margin on every reload). maxRow is applied further down,
+        // AFTER the initial load, so it only constrains interactive drag/resize going forward.
         grid = GridStack.init({
             column: columns,
             cellHeight: 10,
             float: true,
             margin: 0,
             minRow: rows,
-            maxRow: rows,
         }, gridEl);
 
         grid.on('change', syncElementsFromGrid);
 
         elements = JSON.parse(document.getElementById('dlp-elements-input').value || '[]');
-        // batchUpdate defers GridStack's collision/placement recalculation until the whole
-        // batch commits, instead of re-running it after every single addWidget() call. Without
-        // it, an element saved slightly out of bounds (e.g. from before maxRow existed) could
-        // get relocated by GridStack's own collision-avoidance during its own add, and that
-        // relocation could in turn collide with and displace an ENTIRELY UNRELATED, validly
-        // placed element (e.g. the QR code overflowing the bottom pushing the title down too)
-        // — confirmed happening with a real saved layout during testing.
-        grid.batchUpdate();
         elements.forEach(el => addGridItem(el, widthMm, heightMm, columns));
-        grid.batchUpdate(false);
+
+        // Now that every saved element sits exactly where it was saved, cap future
+        // interactive drags/resizes at the label's bottom edge — 'column' already does the
+        // equivalent for width natively.
+        grid.opts.maxRow = rows;
+        grid.engine.maxRow = rows;
 
         document.getElementById('dlp-add-text-btn').addEventListener('click', () => {
             addElement({ type: 'text', x: 0, y: 0, width: 30, height: 8, data_source: 'titulo', font_size: 10, text_align: 'left', text_valign: 'top' }, widthMm, heightMm, columns);
@@ -104,25 +106,13 @@
     }
 
     function addGridItem(el, widthMm, heightMm, columns) {
-        const rows = Math.round(heightMm * PX_PER_MM / 10);
         const w = el.type === 'qrcode' ? el.size : el.width;
         const h = el.type === 'qrcode' ? el.size : el.height;
-
-        // Clamp to the grid's own bounds before handing off to GridStack. An element saved
-        // with x/y/size that no longer fits (e.g. an old QR positioned to extend past the
-        // label's edge, from before size limits existed) would otherwise reach GridStack
-        // already invalid, and its own bounds-correction is what triggers the collision
-        // cascade the batchUpdate() above can't fully prevent on its own.
-        let gridW = Math.min(mmToCol(w, widthMm, columns), columns);
-        let gridH = Math.min(Math.round(h * PX_PER_MM / 10), rows);
-        let gridX = Math.max(0, Math.min(mmToCol(el.x, widthMm, columns), columns - gridW));
-        let gridY = Math.max(0, Math.min(Math.round(el.y * PX_PER_MM / 10), rows - gridH));
-
         const widgetEl = grid.addWidget({
-            x: gridX,
-            y: gridY,
-            w: gridW,
-            h: gridH,
+            x: mmToCol(el.x, widthMm, columns),
+            y: Math.round(el.y * PX_PER_MM / 10),
+            w: mmToCol(w, widthMm, columns),
+            h: Math.round(h * PX_PER_MM / 10),
             content: el.type === 'qrcode' ? 'QR' : (el.data_source === 'custom' ? el.custom_text : `{${el.data_source}}`),
         });
         widgetEl._dlpElement = el; // direct object reference, never goes stale (unlike a stored index)

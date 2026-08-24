@@ -11,7 +11,7 @@ use Migration;
 use MassiveAction;
 use Toolbox;
 
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.1.0'); // Make sure this matches your setup.php version
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.1.5'); // Make sure this matches your setup.php version
 
 /**
  * Install hook
