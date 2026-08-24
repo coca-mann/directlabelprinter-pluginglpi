@@ -87,7 +87,7 @@ function plugin_init_directlabelprinter() {
 
         $PLUGIN_HOOKS['add_javascript']['directlabelprinter'] = 'js/components.js';
 
-        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/printserver.php';
+        $PLUGIN_HOOKS['config_page']['directlabelprinter'] = 'front/config.php';
 
     } else {
         // --- LOG DE FALHA (Se aplicável) ---
