@@ -180,18 +180,17 @@
             el.x = Math.round((node.x / columns) * widthMm * 100) / 100;
             el.y = Math.round((node.y * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
             if (el.type === 'qrcode') {
-                // QR codes must stay square, but GridStack's resize handles let width and
-                // height drift independently — el.size was only ever read from node.w,
-                // silently dropping any height-only drag. Snapping h back to w here (right
-                // when the drift happens, not just when reading it) is what keeps what gets
-                // saved matching what's actually shown, instead of saving a size that doesn't
-                // match the box the user saw in the editor (and then overflows the label when
-                // the PDF renders it at that larger size).
-                if (node.w !== node.h) {
-                    grid.update(node.el, { h: node.w });
-                    node.h = node.w;
-                }
-                el.size = Math.round((node.w / columns) * widthMm * 100) / 100;
+                // QR codes render as a single square (LabelPdfBuilder::drawQrCode() always
+                // uses one 'size' for both PDF dimensions), but GridStack's resize handle lets
+                // width and height drift independently while dragging. Forcing them back in
+                // sync live (grid.update()) fought every attempt at a small, precise resize,
+                // so that's gone — free dragging in both dimensions is allowed. To still avoid
+                // the original bug (saved size read from node.w alone, so a height-only
+                // shrink was silently ignored and the PDF then overflowed past the drawn box),
+                // take the SMALLER of the two: guarantees the rendered QR never exceeds either
+                // dimension the user actually drew, at the cost of not always filling a
+                // non-square box completely — overflowing the label is the worse failure.
+                el.size = Math.round((Math.min(node.w, node.h) / columns) * widthMm * 100) / 100;
             } else {
                 el.width = Math.round((node.w / columns) * widthMm * 100) / 100;
                 el.height = Math.round((node.h * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
