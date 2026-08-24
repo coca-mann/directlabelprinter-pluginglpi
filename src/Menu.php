@@ -40,10 +40,33 @@ class Menu
         // Uma única entrada em $menu['config']['content'], apontando para o hub
         // front/config.php (que por sua vez linka pra Servidores e Layouts) — em vez de
         // 'is_multi_entries' criando dois itens separados no dropdown de "Configurar".
+        // 'options' alimenta o 4º nível do breadcrumb (templates/layout/parts/breadcrumbs.html.twig)
+        // quando front/printserver.php e front/layout.php passam $option = 'printserver'/'layout'
+        // pra Html::header(), permitindo voltar pro hub a partir das telas de lista/form.
         return [
             'title' => __('Config. Imp. Etiquetas', 'directlabelprinter'),
             'page'  => '/plugins/directlabelprinter/front/config.php',
             'icon'  => 'fas fa-tag',
+            'options' => [
+                'printserver' => [
+                    'title' => PrintServer::getTypeName(2),
+                    'page'  => PrintServer::getSearchURL(false),
+                    'icon'  => 'fas fa-print',
+                    'links' => [
+                        'search' => PrintServer::getSearchURL(false),
+                        'add'    => PrintServer::getFormURL(false),
+                    ],
+                ],
+                'layout' => [
+                    'title' => Layout::getTypeName(2),
+                    'page'  => Layout::getSearchURL(false),
+                    'icon'  => 'fas fa-tag',
+                    'links' => [
+                        'search' => Layout::getSearchURL(false),
+                        'add'    => Layout::getFormURL(false),
+                    ],
+                ],
+            ],
         ];
     }
 

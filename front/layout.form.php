@@ -4,6 +4,7 @@
 include("../../../inc/includes.php");
 
 use GlpiPlugin\Directlabelprinter\Layout;
+use GlpiPlugin\Directlabelprinter\Menu;
 
 $item = new Layout();
 
@@ -24,6 +25,7 @@ if (isset($_POST['add'])) {
         Layout::getTypeName(1),
         $_SERVER['PHP_SELF'],
         "config",
+        strtolower(Menu::class),
         "layout"
     );
     $item->display(['id' => $_GET['id'] ?? -1]);
