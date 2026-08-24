@@ -152,8 +152,9 @@ class LabelPdfBuilder
 
         $barcode = new Barcode();
         // Quiet zone: a negative padding value is interpreted by tc-lib-barcode as a module
-        // count rather than raw pixels (Type::setPadding()) — -4 gives the standard 4-module
-        // margin QR readers rely on to find the code's edges. Without it (padding [0,0,0,0]),
+        // count rather than raw pixels (Type::setPadding()) — 2 modules is the practical
+        // minimum that still reliably scans (the ISO-recommended 4 wasted more of the
+        // element's box than needed here). Without any margin at all (padding [0,0,0,0]),
         // the finder patterns sit flush against the image border; any edge rounding during
         // rasterization/printing clips straight into them, making the code unreadable.
         $model = $barcode->getBarcodeObj(
@@ -162,7 +163,7 @@ class LabelPdfBuilder
             (int) ($size * 10),
             (int) ($size * 10),
             $has_background ? 'white' : 'black',
-            [-4, -4, -4, -4]
+            [-2, -2, -2, -2]
         )->setBackgroundColor($has_background ? 'black' : 'white');
 
         $png_data = $model->getPngData();
