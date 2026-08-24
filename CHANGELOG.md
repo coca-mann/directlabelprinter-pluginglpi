@@ -7,6 +7,16 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [0.4.0] - 2026-08-24
+
 ### Fixed
 
 - [8400c91](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/8400c91) - Corrigido o atalho de engrenagem em Configuração > Plug-ins, que abria direto a lista de servidores de impressão em vez do hub de configuração do plugin.
