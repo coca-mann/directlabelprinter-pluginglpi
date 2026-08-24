@@ -9,6 +9,8 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- [e06b870](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/e06b870) - Adicionados catálogos de tradução (`locales/`) para Português do Brasil, Inglês e Francês; ao trocar o idioma da interface no GLPI, as telas do plugin (config, formulários de servidor/layout, ação de impressão) agora acompanham o idioma escolhido, com Inglês como padrão para os demais idiomas não traduzidos.
+
 ### Changed
 
 ### Fixed
