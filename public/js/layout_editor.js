@@ -78,6 +78,70 @@
         // which already happens via the 'change' listener above.
 
         initFontUploadToggle();
+        initFontPreview();
+    }
+
+    // Mapeamento best-effort pras 4 fontes embutidas do TCPDF pro equivalente mais próximo
+    // disponível no navegador — não é pixel-perfect (é renderização de tela via CSS, não o
+    // motor de PDF), mas dá a mesma noção geral que o usuário pediu.
+    const BUILTIN_FONT_CSS = {
+        helvetica: 'Helvetica, Arial, sans-serif',
+        times: '"Times New Roman", Times, serif',
+        courier: '"Courier New", Courier, monospace',
+        dejavusans: '"DejaVu Sans", Verdana, sans-serif',
+    };
+
+    let dlpCustomPreviewFontFace = null;
+
+    function initFontPreview() {
+        const fontSelect = document.querySelector('#dlp-font-choice-cell select[name="font_choice"]');
+        const preview = document.getElementById('dlp-font-preview');
+        const fileInput = document.querySelector('.dlp-font-upload-cell input[type="file"]');
+        if (!fontSelect || !preview) {
+            return;
+        }
+
+        const applyBuiltIn = () => {
+            preview.style.fontFamily = BUILTIN_FONT_CSS[fontSelect.value] || 'sans-serif';
+        };
+
+        // Lê o arquivo .ttf escolhido DIRETO do input (File API), sem esperar o upload AJAX
+        // do GLPI terminar — a prévia funciona assim que o arquivo é escolhido, antes mesmo
+        // de salvar o formulário.
+        const applyCustomFromFile = (file) => {
+            const url = URL.createObjectURL(file);
+            const face = new FontFace('DlpCustomPreviewFont', 'url(' + url + ')');
+            face.load().then((loadedFace) => {
+                if (dlpCustomPreviewFontFace) {
+                    document.fonts.delete(dlpCustomPreviewFontFace);
+                }
+                document.fonts.add(loadedFace);
+                dlpCustomPreviewFontFace = loadedFace;
+                preview.style.fontFamily = 'DlpCustomPreviewFont';
+                URL.revokeObjectURL(url);
+            }).catch(() => {
+                preview.style.fontFamily = 'sans-serif';
+            });
+        };
+
+        const update = () => {
+            if (fontSelect.value === 'custom') {
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    applyCustomFromFile(fileInput.files[0]);
+                }
+                // Sem arquivo novo escolhido nesta sessão (editando um layout que já tem uma
+                // fonte personalizada salva no servidor) — não dá pra pré-visualizar um
+                // arquivo que já foi enviado sem buscá-lo, então mantém o que já estava.
+            } else {
+                applyBuiltIn();
+            }
+        };
+
+        fontSelect.addEventListener('change', update);
+        if (fileInput) {
+            fileInput.addEventListener('change', update);
+        }
+        update();
     }
 
     // O upload de fonte customizada só faz sentido quando 'Personalizada' está selecionada

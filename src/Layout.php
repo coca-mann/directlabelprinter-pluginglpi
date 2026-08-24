@@ -163,6 +163,11 @@ class Layout extends CommonDBTM
             'dejavusans' => __('DejaVu Sans (UTF-8 / acentos)', 'directlabelprinter'),
             'custom'     => __('Personalizada (enviar .ttf)', 'directlabelprinter'),
         ], ['value' => $this->fields['font_choice'] ?: 'dejavusans']);
+        // Amostra com letras maiúsculas/minúsculas de formas distintas (A/a, G/g) e o conjunto
+        // completo de dígitos — dá pra perceber o "jeito" da fonte sem precisar salvar. Trocada
+        // via CSS para as fontes padrão e via File API (FontFace) para a personalizada, direto
+        // no arquivo escolhido no upload, antes mesmo do formulário ser enviado.
+        echo "<span id='dlp-font-preview' style='margin-left:16px;font-size:22px;white-space:nowrap'>AaGg 0123456789</span>";
         echo "</td>";
         echo "</tr>";
 
