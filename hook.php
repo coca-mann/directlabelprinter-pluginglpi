@@ -11,7 +11,7 @@ use Migration;
 use MassiveAction;
 use Toolbox;
 
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.3.0'); // Make sure this matches your setup.php version
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.4.0'); // Make sure this matches your setup.php version
 
 /**
  * Install hook
@@ -128,18 +128,48 @@ function plugin_directlabelprinter_install() {
     // CRUD real — é só um cabeçalho de seção na matriz de perfis, sem CREATE/UPDATE/PURGE
     // atribuíveis — então formulários de adicionar/editar ficavam com os campos vazios (o
     // tab AJAX que carrega o formulário aborta em silêncio quando can() retorna false).
-    // Concede ALLSTANDARDRIGHT a todos os perfis existentes para que o plugin funcione sem
-    // exigir configuração manual de perfil antes do primeiro uso.
+    //
+    // Só concede ALLSTANDARDRIGHT (config de servidores/layouts) a perfis que já possuem o
+    // right nativo 'config' do GLPI (perfis realmente administrativos) — os demais começam
+    // sem acesso, e um admin libera manualmente em Administração > Perfis, como qualquer
+    // outra funcionalidade do GLPI. Isso só roda em instalações novas: se a linha já existe
+    // (instalação anterior a esta versão), não mexemos no que o admin já configurou.
     $plugin_right_name = 'plugin_directlabelprinter';
     // addProfileRights() insere uma linha por perfil existente — com vários perfis, isso
     // já é mais de uma linha, então checar existência precisa contar, não usar
     // getFromDBByCrit() (que lança exceção quando encontra mais de um resultado).
     if (countElementsInTable(\ProfileRight::getTable(), ['name' => $plugin_right_name]) === 0) {
         \ProfileRight::addProfileRights([$plugin_right_name]);
+
+        $admin_profile_ids = array_column(
+            iterator_to_array($DB->request([
+                'SELECT' => 'profiles_id',
+                'FROM'   => \ProfileRight::getTable(),
+                'WHERE'  => ['name' => 'config', 'rights' => ['>', 0]],
+            ])),
+            'profiles_id'
+        );
+        if (!empty($admin_profile_ids)) {
+            $DB->update(
+                \ProfileRight::getTable(),
+                ['rights' => ALLSTANDARDRIGHT],
+                ['name' => $plugin_right_name, 'profiles_id' => $admin_profile_ids]
+            );
+        }
+    }
+
+    // Right dedicado ao uso da ação "Imprimir Etiqueta" (ver DirectLabelPrinterActions), em
+    // separado do right de configuração acima — controla quem pode disparar impressões, não
+    // quem pode editar servidores/layouts. Concedido a todos os perfis por padrão (mesmo
+    // self-service/helpdesk, que hoje já usam a ação livremente) para não regredir o
+    // comportamento atual; um admin restringe por perfil se quiser.
+    $print_right_name = 'plugin_directlabelprinter_print';
+    if (countElementsInTable(\ProfileRight::getTable(), ['name' => $print_right_name]) === 0) {
+        \ProfileRight::addProfileRights([$print_right_name]);
         $DB->update(
             \ProfileRight::getTable(),
-            ['rights' => ALLSTANDARDRIGHT],
-            ['name' => $plugin_right_name]
+            ['rights' => READ],
+            ['name' => $print_right_name]
         );
     }
 
@@ -185,6 +215,7 @@ function plugin_directlabelprinter_uninstall() {
     }
 
     $DB->delete(\ProfileRight::getTable(), ['name' => 'plugin_directlabelprinter']);
+    $DB->delete(\ProfileRight::getTable(), ['name' => 'plugin_directlabelprinter_print']);
 
     return true;
 }
@@ -202,6 +233,13 @@ function plugin_directlabelprinter_MassiveActions($itemtype) {
     // Toolbox::logInFile("debug", "[DirectLabelPrinter] Hook _MassiveActions chamado para itemtype: " . $itemtype);
 
     $actions = [];
+
+    // Sem o right 'plugin_directlabelprinter_print', o usuário nem vê a ação no menu de
+    // ações em massa. A checagem que realmente importa (ajax/print.php) é independente
+    // desta — esta aqui é só para não oferecer uma ação que ele não pode executar.
+    if (!\Session::haveRight('plugin_directlabelprinter_print', READ)) {
+        return $actions;
+    }
 
     $asset_types = \GlpiPlugin\Directlabelprinter\AssetTypes::getWhitelist();
 
