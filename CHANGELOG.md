@@ -5,7 +5,7 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [Unreleased]
+## [0.3.0] - 2026-08-24
 
 ### Added
 
@@ -32,13 +32,10 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - [9aaee0b](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/9aaee0b) - Removida a pasta `tudo_old/`, um protótipo de página de configuração que nunca chegou a ser integrado ao plugin.
 
 <!--
-Ao criar uma nova tag:
-1. Renomeie a seção acima para incluir a versão:
-   ## [Unreleased]
-
-   ## [X.Y.Z] - AAAA-MM-DD
-   ### Added
-   - ...
-2. Copie o conteúdo da seção "Changelog" do(s) MR(s)/PR(s) incluídos na tag.
-3. Preencha a data no formato AAAA-MM-DD.
+Este changelog não mantém uma seção [Unreleased] vazia entre releases — ela só
+existe temporariamente, criada pelo /changelog-pr quando há mudança para
+registrar, e é renomeada para a versão (/changelog-release) sem deixar uma
+nova seção vazia no lugar. Cada entrada segue o formato `<hash(es)> - <descrição>`,
+com o(s) hash(es) linkados pro commit no GitHub, só nas categorias
+(Added/Changed/Fixed/Security) que tiverem pelo menos uma entrada.
 -->
