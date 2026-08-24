@@ -5,6 +5,16 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Fixed
+
+- [8400c91](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/8400c91) - Corrigido o atalho de engrenagem em Configuração > Plug-ins, que abria direto a lista de servidores de impressão em vez do hub de configuração do plugin.
+
+### Security
+
+- [a084bda](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/a084bda) - Adicionado controle de permissão dedicado para a ação "Imprimir Etiqueta" e para as telas de configuração de servidores/layouts, ajustável em Administração > Perfis; antes, qualquer usuário com acesso de leitura ao ativo podia imprimir etiquetas livremente, sem nenhum right do plugin envolvido.
+
 ## [0.3.0] - 2026-08-24
 
 ### Added
