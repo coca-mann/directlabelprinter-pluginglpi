@@ -82,3 +82,11 @@ Four tables, all created in `plugin_directlabelprinter_install()` and dropped in
 - `showMassiveActionsSubForm()`'s inline `<script>` must stay unwrapped by `DOMContentLoaded` (see Massive action section above) — the single-item button's script in `hook.php`, by contrast, correctly keeps the `DOMContentLoaded` wrapper since it's part of the initial page HTML.
 - Any `json_encode()` call whose output is embedded directly into an inline `<script>` block (the `openPrintModal(...)` call sites in `hook.php` and `DirectLabelPrinterActions.php`) must pass `JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT` — item names/comments are user-controlled data.
 - All strings/UI text in PHP and JS are heavily Portuguese (pt-BR) even though `__()`/gettext wrapping is used for translation — keep new user-facing strings wrapped in `__('...', 'directlabelprinter')` consistent with the existing code.
+
+## Versioning and changelog
+
+See `docs/versioning.md` for the full semver bump criteria (this plugin has no external consumer, so MAJOR follows classic semver from the GLPI admin's point of view — see that file's "Adaptação" section for concrete examples).
+
+- **Commit messages**: always English, imperative, conventional-commit style (see `/commit`).
+- **CHANGELOG.md entries and PR titles/descriptions**: always Portuguese (pt-BR), consistent with this plugin's UI strings.
+- **Translation note**: a changelog/PR entry is never a literal copy or mechanical translation of the commit title — write it fresh in Portuguese from what the change actually does. Category headers (`Added`/`Changed`/`Fixed`/`Security`) stay in English per the Keep a Changelog convention; only the entry text itself is Portuguese.
