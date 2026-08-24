@@ -125,7 +125,13 @@ class PrintServiceClient
     private function interpretResponse(?string $body, int $http_code, string $curl_error): array
     {
         if ($curl_error !== '') {
-            return ['success' => false, 'message' => __('Erro de conexão:', 'directlabelprinter') . ' ' . $curl_error];
+            // O detalhe cru do curl (resolvido/recusado/timeout etc.) não vai pro cliente:
+            // como url é um campo livre digitado no formulário, devolver esse detalhe
+            // transformaria este endpoint num oráculo de scan de rede interna para qualquer
+            // usuário com READ no right de configuração (distingue host inexistente de porta
+            // fechada de conexão recusada). Fica só no log do servidor.
+            \Toolbox::logInFile('directlabelprinter', 'PrintServiceClient connection error: ' . $curl_error);
+            return ['success' => false, 'message' => __('Erro de conexão:', 'directlabelprinter')];
         }
         $decoded = json_decode((string) $body, true);
         if ($http_code < 200 || $http_code >= 300) {
