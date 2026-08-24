@@ -37,5 +37,6 @@ class AssetTypes
 {
     public const WHITELIST = [
         'Computer', 'Monitor', 'NetworkEquipment', 'Printer', 'Phone', 'Peripheral',
+        'Rack', 'ConsumableItem',
     ];
 }
