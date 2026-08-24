@@ -11,7 +11,7 @@ use Migration;
 use MassiveAction;
 use Toolbox;
 
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.2.1'); // Make sure this matches your setup.php version
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.2.2'); // Make sure this matches your setup.php version
 
 /**
  * Install hook
@@ -141,6 +141,18 @@ function plugin_directlabelprinter_install() {
             ['rights' => ALLSTANDARDRIGHT],
             ['name' => $plugin_right_name]
         );
+    }
+
+    // install/empty_data.php do core do GLPI semeia glpi_documenttypes com dezenas de
+    // extensões (jpg, pdf, doc...) mas não inclui .ttf — numa instalação limpa, o upload de
+    // fonte personalizada (Layout::attachCustomFontIfUploaded()) fica bloqueado até alguém
+    // cadastrar isso manualmente em Configuração > Tipos de documento. Garantimos aqui.
+    if (countElementsInTable('glpi_documenttypes', ['ext' => 'ttf']) === 0) {
+        $DB->insert('glpi_documenttypes', [
+            'name'          => 'TrueType Font',
+            'ext'           => 'ttf',
+            'is_uploadable' => 1,
+        ]);
     }
 
     $migration->executeMigration();
