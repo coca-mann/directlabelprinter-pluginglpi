@@ -64,7 +64,7 @@
             addElement({ type: 'text', x: 0, y: 0, width: 30, height: 8, data_source: 'titulo', font_size: 10, text_align: 'left', text_valign: 'top' }, widthMm, heightMm, columns);
         });
         document.getElementById('dlp-add-qr-btn').addEventListener('click', () => {
-            addElement({ type: 'qrcode', x: 0, y: 0, size: 20, data_source: 'url' }, widthMm, heightMm, columns);
+            addElement({ type: 'qrcode', x: 0, y: 0, width: 20, height: 20, data_source: 'url' }, widthMm, heightMm, columns);
         });
         document.getElementById('dlp-remove-element-btn').addEventListener('click', removeSelected);
 
@@ -106,8 +106,12 @@
     }
 
     function addGridItem(el, widthMm, heightMm, columns) {
-        const w = el.type === 'qrcode' ? el.size : el.width;
-        const h = el.type === 'qrcode' ? el.size : el.height;
+        // QR elements used to store a single 'size' (forced square box) — el.size is read
+        // as a fallback so layouts saved before this change still load correctly. New QR
+        // elements have their own width/height, same as text, and can be any rectangle: the
+        // actual QR pattern renders as a square centered inside that box (LabelPdfBuilder).
+        const w = el.width !== undefined ? el.width : el.size;
+        const h = el.height !== undefined ? el.height : el.size;
         const widgetEl = grid.addWidget({
             x: mmToCol(el.x, widthMm, columns),
             y: Math.round(el.y * PX_PER_MM / 10),
@@ -179,21 +183,13 @@
             const el = elements[index];
             el.x = Math.round((node.x / columns) * widthMm * 100) / 100;
             el.y = Math.round((node.y * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
+            // QR boxes can be any rectangle now — LabelPdfBuilder centers the actual (square)
+            // QR pattern inside whatever box is drawn, so there's no need to force width and
+            // height to match here; both element types just save their real dimensions.
+            el.width = Math.round((node.w / columns) * widthMm * 100) / 100;
+            el.height = Math.round((node.h * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
             if (el.type === 'qrcode') {
-                // QR codes render as a single square (LabelPdfBuilder::drawQrCode() always
-                // uses one 'size' for both PDF dimensions), but GridStack's resize handle lets
-                // width and height drift independently while dragging. Forcing them back in
-                // sync live (grid.update()) fought every attempt at a small, precise resize,
-                // so that's gone — free dragging in both dimensions is allowed. To still avoid
-                // the original bug (saved size read from node.w alone, so a height-only
-                // shrink was silently ignored and the PDF then overflowed past the drawn box),
-                // take the SMALLER of the two: guarantees the rendered QR never exceeds either
-                // dimension the user actually drew, at the cost of not always filling a
-                // non-square box completely — overflowing the label is the worse failure.
-                el.size = Math.round((Math.min(node.w, node.h) / columns) * widthMm * 100) / 100;
-            } else {
-                el.width = Math.round((node.w / columns) * widthMm * 100) / 100;
-                el.height = Math.round((node.h * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
+                delete el.size; // drop the legacy single-dimension field once re-saved
             }
         });
 

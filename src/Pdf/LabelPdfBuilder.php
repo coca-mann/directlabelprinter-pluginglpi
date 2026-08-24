@@ -142,7 +142,16 @@ class LabelPdfBuilder
     {
         $x = (float) ($element['x'] ?? 0);
         $y_from_top = (float) ($element['y'] ?? 0);
-        $size = (float) ($element['size'] ?? 25);
+        // The element's box can be any rectangle (drag width/height independently in the
+        // editor), but a QR pattern itself must stay square to scan correctly — render it at
+        // the box's smaller dimension, centered within the box, instead of stretching it or
+        // anchoring it to a corner. 'size' is read as a fallback for layouts saved before
+        // width/height replaced it as the QR element's stored dimensions.
+        $box_w = (float) ($element['width'] ?? $element['size'] ?? 25);
+        $box_h = (float) ($element['height'] ?? $element['size'] ?? 25);
+        $size = min($box_w, $box_h);
+        $x += ($box_w - $size) / 2;
+        $y_from_top += ($box_h - $size) / 2;
         $has_background = (bool) ($element['has_background'] ?? false);
 
         $data = $this->resolveDataSource($element, $item);
