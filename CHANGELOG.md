@@ -10,6 +10,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ### Added
 
 - [8be5b37](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/8be5b37) - Adicionado suporte à impressão de etiquetas para Racks e Insumos.
+- [09faa8e](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/09faa8e) - Adicionado suporte à impressão de etiquetas para ativos customizados (Configuração > Definições de ativos), detectados automaticamente sem precisar editar o plugin.
 
 ### Changed
 
