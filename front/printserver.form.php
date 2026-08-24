@@ -3,6 +3,7 @@
 
 include("../../../inc/includes.php");
 
+use GlpiPlugin\Directlabelprinter\Menu;
 use GlpiPlugin\Directlabelprinter\PrintServer;
 
 $item = new PrintServer();
@@ -24,6 +25,7 @@ if (isset($_POST['add'])) {
         PrintServer::getTypeName(1),
         $_SERVER['PHP_SELF'],
         "config",
+        strtolower(Menu::class),
         "printserver"
     );
     $item->display(['id' => $_GET['id'] ?? -1]);

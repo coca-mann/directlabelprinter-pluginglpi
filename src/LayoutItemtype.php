@@ -88,7 +88,7 @@ class LayoutItemtype
         $DB->delete(self::TABLE, ['plugin_directlabelprinter_layouts_id' => $layouts_id]);
 
         foreach ($itemtype_to_is_default as $itemtype => $is_default) {
-            if (!in_array($itemtype, AssetTypes::WHITELIST, true)) {
+            if (!in_array($itemtype, AssetTypes::getWhitelist(), true)) {
                 continue;
             }
             if ($is_default) {

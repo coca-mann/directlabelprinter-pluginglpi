@@ -224,22 +224,26 @@ class Layout extends CommonDBTM
         echo Html::hidden('elements', ['value' => $this->fields['elements'] ?? '[]', 'id' => 'dlp-elements-input']);
         echo "</td></tr>";
 
-        echo "<tr class='tab_bg_1'><td>" . __('Tipos de ativo', 'directlabelprinter') . "</td><td colspan='3'>";
+        echo "<tr class='tab_bg_1'><th colspan='4'>" . __('Tipos de ativo', 'directlabelprinter') . "</th></tr>";
+        echo "<tr class='tab_bg_1'><td colspan='4'>";
         $current = $this->isNewID($ID) ? [] : LayoutItemtype::getItemtypesForLayout((int) $ID);
-        foreach (AssetTypes::WHITELIST as $itemtype) {
-            echo "<div style='margin-bottom:0.5em'>";
-            echo Html::getCheckbox([
+        echo "<table style='border-collapse:collapse'>";
+        foreach (AssetTypes::getWhitelist() as $itemtype) {
+            $type_name = class_exists($itemtype) ? $itemtype::getTypeName(1) : $itemtype;
+            echo "<tr>";
+            echo "<td style='padding:4px 24px 4px 0'>" . Html::getCheckbox([
                 'name'          => "_itemtypes[$itemtype]",
                 'checked'       => isset($current[$itemtype]),
                 'zero_on_empty' => false,
-            ]) . " $itemtype &nbsp;";
-            echo Html::getCheckbox([
+            ]) . " " . htmlescape($type_name) . "</td>";
+            echo "<td style='padding:4px 0'>" . Html::getCheckbox([
                 'name'          => "_default_itemtypes[$itemtype]",
                 'checked'       => $current[$itemtype] ?? false,
                 'zero_on_empty' => false,
-            ]) . " " . __('padrão', 'directlabelprinter');
-            echo "</div>";
+            ]) . " " . __('Padrão', 'directlabelprinter') . "</td>";
+            echo "</tr>";
         }
+        echo "</table>";
         echo "</td></tr>";
 
         $this->showFormButtons($options);

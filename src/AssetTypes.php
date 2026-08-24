@@ -33,9 +33,30 @@
 
 namespace GlpiPlugin\Directlabelprinter;
 
+use Glpi\Asset\AssetDefinitionManager;
+
 class AssetTypes
 {
     public const WHITELIST = [
         'Computer', 'Monitor', 'NetworkEquipment', 'Printer', 'Phone', 'Peripheral',
+        'Rack', 'ConsumableItem',
     ];
+
+    /**
+     * WHITELIST alone can't include GLPI 11 custom assets (Configuração > Definições de
+     * ativos, e.g. "Nobreak" => Glpi\CustomAsset\NobreakAsset): those classes only exist at
+     * runtime (created on demand by GLPI's own autoloader), so they can't be listed in a
+     * const array. This merges the fixed WHITELIST with every currently *active* custom
+     * asset itemtype — call this instead of reading AssetTypes::WHITELIST directly anywhere
+     * that decides which itemtypes get label printing.
+     *
+     * @return string[]
+     */
+    public static function getWhitelist(): array
+    {
+        return array_merge(
+            self::WHITELIST,
+            AssetDefinitionManager::getInstance()->getCustomObjectClassNames()
+        );
+    }
 }

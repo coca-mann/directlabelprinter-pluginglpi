@@ -33,38 +33,38 @@
 
 namespace GlpiPlugin\Directlabelprinter;
 
-use GlpiPlugin\Directlabelprinter\Layout;
-
 class Menu
 {
     public static function getMenuContent(): array
     {
-        // is_multi_entries faz o GLPI mesclar 'printserver' e 'layout' como itens de
-        // MESMO NÍVEL diretamente em $menu['config']['content'] (Html::generateMenuSession()),
-        // em vez de aninhá-los sob uma única entrada — isso é necessário para que ambos
-        // apareçam como itens separados e clicáveis no dropdown lateral do Setup
-        // (templates/layout/parts/menu.html.twig só itera sobre 'content', nunca desce em
-        // 'options' para montar a navegação da barra lateral). O setor "Setup"/"Configurar"
-        // do GLPI 11 usa internamente a chave 'config' em $menu (não 'setup') — a chave usada
-        // no registro do hook menu_toadd (setup.php) precisa bater com essa mesma chave.
+        // Uma única entrada em $menu['config']['content'], apontando para o hub
+        // front/config.php (que por sua vez linka pra Servidores e Layouts) — em vez de
+        // 'is_multi_entries' criando dois itens separados no dropdown de "Configurar".
+        // 'options' alimenta o 4º nível do breadcrumb (templates/layout/parts/breadcrumbs.html.twig)
+        // quando front/printserver.php e front/layout.php passam $option = 'printserver'/'layout'
+        // pra Html::header(), permitindo voltar pro hub a partir das telas de lista/form.
         return [
-            'is_multi_entries' => true,
-            'printserver' => [
-                'title' => PrintServer::getTypeName(2),
-                'page'  => PrintServer::getSearchURL(false),
-                'icon'  => 'fas fa-print',
-                'links' => [
-                    'search' => PrintServer::getSearchURL(false),
-                    'add'    => PrintServer::getFormURL(false),
+            'title' => __('Config. Imp. Etiquetas', 'directlabelprinter'),
+            'page'  => '/plugins/directlabelprinter/front/config.php',
+            'icon'  => 'fas fa-tag',
+            'options' => [
+                'printserver' => [
+                    'title' => PrintServer::getTypeName(2),
+                    'page'  => PrintServer::getSearchURL(false),
+                    'icon'  => 'fas fa-print',
+                    'links' => [
+                        'search' => PrintServer::getSearchURL(false),
+                        'add'    => PrintServer::getFormURL(false),
+                    ],
                 ],
-            ],
-            'layout' => [
-                'title' => Layout::getTypeName(2),
-                'page'  => Layout::getSearchURL(false),
-                'icon'  => 'fas fa-tag',
-                'links' => [
-                    'search' => Layout::getSearchURL(false),
-                    'add'    => Layout::getFormURL(false),
+                'layout' => [
+                    'title' => Layout::getTypeName(2),
+                    'page'  => Layout::getSearchURL(false),
+                    'icon'  => 'fas fa-tag',
+                    'links' => [
+                        'search' => Layout::getSearchURL(false),
+                        'add'    => Layout::getFormURL(false),
+                    ],
                 ],
             ],
         ];
