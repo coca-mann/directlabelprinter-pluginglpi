@@ -117,15 +117,22 @@ class DirectLabelPrinterActions extends CommonDBTM // Estender CommonDBTM é um 
      */
     public static function resolveItemsForPrint(string $itemtype, array $ids): array
     {
+        global $CFG_GLPI;
+        // CommonDBTM::getLinkURL() returns a root-relative path (e.g.
+        // "/front/computer.form.php?id=1"), no scheme/host — a QR code encoding just that
+        // isn't a usable link when scanned from a phone camera outside the browser session.
+        $base_url = rtrim($CFG_GLPI['url_base'] ?? '', '/');
+
         $resolved = [];
         $item_obj = new $itemtype();
         foreach ($ids as $item_info) {
             $id = is_array($item_info) ? $item_info['id'] : $item_info;
             if ($item_obj->getFromDB($id) && $item_obj->can($id, READ)) {
+                $link = $item_obj->getLinkURL() ?? '';
                 $resolved[] = [
                     'id'     => (int) $id,
                     'titulo' => $item_obj->fields['name'] ?? ('Item ' . $id),
-                    'url'    => $item_obj->getLinkURL() ?? '',
+                    'url'    => $link !== '' ? $base_url . $link : '',
                     'ref'    => $item_obj->fields['otherserial'] ?? $item_obj->fields['serial'] ?? null,
                 ];
             } else {

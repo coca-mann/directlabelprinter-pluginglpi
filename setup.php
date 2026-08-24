@@ -32,7 +32,7 @@
  */
 
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */
-define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.1.5');
+define('PLUGIN_DIRECTLABELPRINTER_VERSION', '0.1.6');
 
 // Minimal GLPI version, inclusive
 /** @phpstan-ignore theCodingMachineSafe.function (safe to assume this isn't already defined) */

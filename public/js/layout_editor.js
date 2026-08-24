@@ -180,6 +180,17 @@
             el.x = Math.round((node.x / columns) * widthMm * 100) / 100;
             el.y = Math.round((node.y * 10 / PX_PER_MM / heightMm) * heightMm * 100) / 100;
             if (el.type === 'qrcode') {
+                // QR codes must stay square, but GridStack's resize handles let width and
+                // height drift independently — el.size was only ever read from node.w,
+                // silently dropping any height-only drag. Snapping h back to w here (right
+                // when the drift happens, not just when reading it) is what keeps what gets
+                // saved matching what's actually shown, instead of saving a size that doesn't
+                // match the box the user saw in the editor (and then overflows the label when
+                // the PDF renders it at that larger size).
+                if (node.w !== node.h) {
+                    grid.update(node.el, { h: node.w });
+                    node.h = node.w;
+                }
                 el.size = Math.round((node.w / columns) * widthMm * 100) / 100;
             } else {
                 el.width = Math.round((node.w / columns) * widthMm * 100) / 100;
