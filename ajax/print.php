@@ -40,7 +40,13 @@ if (
 
 $layout_id = $layout_id ?: LayoutItemtype::getDefaultLayoutId($itemtype);
 $layout = new Layout();
-if (!$layout_id || !$layout->getFromDB($layout_id)) {
+// O sub-formulário só oferece no <select> os layouts associados a $itemtype, mas isso é só
+// o client escondendo opções — nada impedia o backend de aceitar um layout_id de outro
+// itemtype qualquer. Sem exposição de dado sensível (layouts só carregam titulo/url/ref/texto
+// fixo do próprio admin), mas a regra de associação layout<->itemtype deve valer no servidor.
+$layout_belongs_to_itemtype = $layout_id
+    && array_key_exists($itemtype, LayoutItemtype::getItemtypesForLayout($layout_id));
+if (!$layout_belongs_to_itemtype || !$layout->getFromDB($layout_id)) {
     echo json_encode(['success' => false, 'message' => __('Nenhum layout de etiqueta disponível para este tipo de ativo.', 'directlabelprinter')]);
     exit;
 }
