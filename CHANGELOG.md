@@ -5,20 +5,20 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-> Nota: este changelog passa a ser mantido a partir da versão `0.2.1`
-> (versão atual em `setup.php` no momento da adoção deste processo).
-> Versões anteriores não foram reconstruídas retroativamente; consulte o
-> histórico de commits no Git caso precise dessa informação.
-
 ## [Unreleased]
 
 ### Added
 
+- [8be5b37](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/8be5b37) - Adicionado suporte à impressão de etiquetas para Racks e Insumos.
+
 ### Changed
+
+- [142727f](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/142727f), [37bf37b](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/37bf37b) - Consolidadas em uma única entrada de menu ("Config. Imp. Etiquetas") as telas de Servidores de Impressão e Layouts, antes exibidas como dois itens separados em Configuração; o caminho de volta para essa entrada agora aparece no breadcrumb das telas de lista e formulário.
+- [eb1e3f8](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/eb1e3f8) - Reorganizada a seção "Tipos de ativo" no formulário de Layout em uma seção própria, com os tipos e a opção "Padrão" alinhados em colunas e exibindo o nome nativo traduzido do GLPI para cada itemtype.
 
 ### Fixed
 
-### Security
+- [1feb51f](https://github.com/coca-mann/directlabelprinter-pluginglpi/commit/1feb51f) - Corrigido o upload de fonte personalizada (`.ttf`) em instalações limpas do GLPI, que não vinham com esse tipo de documento liberado para envio.
 
 ## [0.2.1] - 2026-08-24
 
